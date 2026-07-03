@@ -1,0 +1,122 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: agentur-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-agentur}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agentur_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-agentur}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/02-n8n-db.sql:/docker-entrypoint-initdb.d/02-n8n-db.sql:ro
+      - ./database/03-knowledge-seed.sql:/docker-entrypoint-initdb.d/03-knowledge-seed.sql:ro
+      - ./database/04-gamification.sql:/docker-entrypoint-initdb.d/04-gamification.sql:ro
+      - ./database/05-settings.sql:/docker-entrypoint-initdb.d/05-settings.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-agentur}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: agentur-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: agentur-n8n
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_PORT: 5432
+      DB_POSTGRESDB_DATABASE: ${N8N_DB_NAME:-n8n}
+      DB_POSTGRESDB_USER: ${POSTGRES_USER:-agentur}
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD:-agentur_dev}
+      N8N_HOST: ${N8N_HOST:-localhost}
+      N8N_PORT: 5678
+      N8N_PROTOCOL: http
+      WEBHOOK_URL: ${N8N_WEBHOOK_URL:-http://localhost:5678}
+      GENERIC_TIMEZONE: ${TZ:-Europe/Berlin}
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY:-change-me-to-a-random-32-char-key}
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n/workflows:/import/workflows:ro
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agentur-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-agentur}:${POSTGRES_PASSWORD:-agentur_dev}@postgres:5432/${POSTGRES_DB:-agentur}
+      REDIS_URL: redis://redis:6379/0
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      LLM_PROVIDER: ${LLM_PROVIDER:-groq}
+      DEFAULT_LLM_MODEL: ${DEFAULT_LLM_MODEL:-llama-3.3-70b-versatile}
+      CLASSIFIER_MODEL: ${CLASSIFIER_MODEL:-llama-3.1-8b-instant}
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
+      OUTBOUND_FROM_EMAIL: ${OUTBOUND_FROM_EMAIL:-sales@amplivo.net}
+      OUTBOUND_FROM_NAME: ${OUTBOUND_FROM_NAME:-Amplivo Sales Team}
+      DAILY_EMAIL_LIMIT: ${DAILY_EMAIL_LIMIT:-30}
+      AFFILIATE_PRODUCT_SLUG: ${AFFILIATE_PRODUCT_SLUG:-gohighlevel}
+      AFFILIATE_TRACKING_BASE: ${AFFILIATE_TRACKING_BASE:-}
+      AFFILIATE_POSTBACK_SECRET: ${AFFILIATE_POSTBACK_SECRET:-}
+      ICP_INDUSTRY: ${ICP_INDUSTRY:-marketing_agency}
+      LEAD_SCORE_THRESHOLD: ${LEAD_SCORE_THRESHOLD:-70}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      N8N_WEBHOOK_BASE: ${N8N_WEBHOOK_URL:-http://n8n:5678}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./agents:/app/agents:ro
+      - ./packages:/app/packages:ro
+      - ./landing:/app/landing:ro
+      - ./dashboard:/app/dashboard:ro
+
+  voice-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agentur-voice-worker
+    restart: unless-stopped
+    command: ["python", "-m", "agents.voice_livekit.queue_worker"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-agentur}:${POSTGRES_PASSWORD:-agentur_dev}@postgres:5432/${POSTGRES_DB:-agentur}
+      REDIS_URL: redis://redis:6379/0
+
+volumes:
+  postgres_data:
+  redis_data:
+  n8n_data:

@@ -1,0 +1,102 @@
+{
+  "name": "New Lead Pipeline (Lean/Brevo)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "new-lead",
+        "responseMode": "responseNode"
+      },
+      "id": "webhook-new-lead",
+      "name": "Webhook: New Lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/leads",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}"
+      },
+      "id": "api-score-lead",
+      "name": "API: Score Lead",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.score.score }}",
+              "operation": "largerEqual",
+              "value2": 70
+            }
+          ]
+        }
+      },
+      "id": "if-high-score",
+      "name": "IF Score >= 70",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/outbound/send",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ lead_id: $('API: Score Lead').item.json.lead_id, sequence: 'outbound_a', step: 1 }) }}"
+      },
+      "id": "brevo-seq-a",
+      "name": "Brevo: Sequence A Step 1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/outbound/send",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ lead_id: $('API: Score Lead').item.json.lead_id, sequence: 'nurture_b', step: 1 }) }}"
+      },
+      "id": "brevo-seq-b",
+      "name": "Brevo: Sequence B Step 1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, lead_id: $('API: Score Lead').item.json.lead_id, score: $('API: Score Lead').item.json.score }) }}"
+      },
+      "id": "respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1200, 300]
+    }
+  ],
+  "connections": {
+    "Webhook: New Lead": { "main": [[{ "node": "API: Score Lead", "type": "main", "index": 0 }]] },
+    "API: Score Lead": { "main": [[{ "node": "IF Score >= 70", "type": "main", "index": 0 }]] },
+    "IF Score >= 70": {
+      "main": [
+        [{ "node": "Brevo: Sequence A Step 1", "type": "main", "index": 0 }],
+        [{ "node": "Brevo: Sequence B Step 1", "type": "main", "index": 0 }]
+      ]
+    },
+    "Brevo: Sequence A Step 1": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] },
+    "Brevo: Sequence B Step 1": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "agentur" }, { "name": "lean" }]
+}

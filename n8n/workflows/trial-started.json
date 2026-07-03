@@ -1,0 +1,69 @@
+{
+  "name": "Affiliate Trial Started (Lean/Brevo)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "affiliate-postback",
+        "responseMode": "responseNode"
+      },
+      "id": "webhook-postback",
+      "name": "Webhook: Affiliate Postback",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/webhooks/affiliate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-Postback-Secret", "value": "={{ $env.AFFILIATE_POSTBACK_SECRET }}" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}"
+      },
+      "id": "api-record-conversion",
+      "name": "API: Record Conversion",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/outbound/reply",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ lead_id: $('Webhook: Affiliate Postback').item.json.lead_id, subject: 'Welcome – let us get you set up', body: 'Hi!\\n\\nThanks for starting your trial. Here are your first steps:\\n\\n1. Complete your account setup\\n2. Import your first contacts\\n3. Reply to this email if you need help\\n\\nBest,\\nThe Team' }) }}"
+      },
+      "id": "brevo-onboarding",
+      "name": "Brevo: Onboarding Day 0",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true }) }}"
+      },
+      "id": "respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [960, 300]
+    }
+  ],
+  "connections": {
+    "Webhook: Affiliate Postback": { "main": [[{ "node": "API: Record Conversion", "type": "main", "index": 0 }]] },
+    "API: Record Conversion": { "main": [[{ "node": "Brevo: Onboarding Day 0", "type": "main", "index": 0 }]] },
+    "Brevo: Onboarding Day 0": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "agentur" }, { "name": "lean" }]
+}

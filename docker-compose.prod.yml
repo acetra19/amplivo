@@ -1,0 +1,48 @@
+# Production override – use on VPS:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# Differences vs dev:
+# - Postgres/Redis not exposed to the internet
+# - Caddy reverse proxy with automatic HTTPS
+# - API/n8n only reachable via HTTPS subdomains
+
+services:
+  postgres:
+    ports: !reset []
+
+  redis:
+    ports: !reset []
+
+  n8n:
+    ports: !reset []
+    environment:
+      N8N_PROTOCOL: https
+      N8N_HOST: ${N8N_HOST:-n8n.amplivo.net}
+      WEBHOOK_URL: ${N8N_WEBHOOK_URL:-https://n8n.amplivo.net}
+
+  api:
+    ports: !reset []
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: agentur-caddy
+    restart: unless-stopped
+    depends_on:
+      - api
+      - n8n
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      API_DOMAIN: ${API_DOMAIN:-api.amplivo.net}
+      N8N_DOMAIN: ${N8N_HOST:-n8n.example.com}
+      LANDING_DOMAIN: ${LANDING_DOMAIN:-}
+      DASHBOARD_DOMAIN: ${DASHBOARD_DOMAIN:-}
+    volumes:
+      - ./infra/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

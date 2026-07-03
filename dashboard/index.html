@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agency Command Center</title>
+  <link rel="stylesheet" href="/dashboard/assets/style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-icon">⚡</span>
+        <div>
+          <strong>Amplivo</strong>
+          <small>Command Center</small>
+        </div>
+      </div>
+      <nav>
+        <a href="#overview" class="nav-active">Overview</a>
+        <a href="#quests">Daily Quests</a>
+        <a href="#achievements">Achievements</a>
+        <a href="#agents">Agent Feed</a>
+        <a href="/dashboard/settings">Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="/" class="link-muted">← Landing Page</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1>Command Center</h1>
+          <p class="subtitle">Your autonomous sales agency at a glance</p>
+        </div>
+        <button id="refresh-btn" class="btn">Refresh</button>
+      </header>
+
+      <section id="overview" class="hero-card">
+        <div class="level-block">
+          <div class="level-ring">
+            <span id="level-num">1</span>
+          </div>
+          <div class="level-info">
+            <p class="rank" id="rank-title">Rookie</p>
+            <p class="name" id="display-name">Agent Commander</p>
+            <div class="xp-bar"><div class="xp-fill" id="xp-fill"></div></div>
+            <p class="xp-label"><span id="xp-total">0</span> XP · <span id="xp-next">100</span> to next level</p>
+          </div>
+        </div>
+        <div class="streak-card">
+          <span class="streak-icon">🔥</span>
+          <div>
+            <strong id="streak-days">0</strong>
+            <small>day streak</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="stats-grid" id="pipeline-stats">
+        <article class="stat-card"><span class="stat-label">Total Leads</span><strong id="s-leads">–</strong></article>
+        <article class="stat-card"><span class="stat-label">ICP Matches</span><strong id="s-icp">–</strong></article>
+        <article class="stat-card"><span class="stat-label">Emails Today</span><strong id="s-emails">–</strong></article>
+        <article class="stat-card"><span class="stat-label">Conversions</span><strong id="s-conv">–</strong></article>
+        <article class="stat-card accent"><span class="stat-label">Commission</span><strong id="s-rev">–</strong></article>
+        <article class="stat-card"><span class="stat-label">Voice Queue</span><strong id="s-voice">–</strong></article>
+      </section>
+
+      <section id="quests" class="panel">
+        <h2>Daily Quests</h2>
+        <div id="quests-list" class="quests-grid"></div>
+      </section>
+
+      <div class="two-col">
+        <section id="achievements" class="panel">
+          <h2>Achievements <span id="ach-count" class="badge-count"></span></h2>
+          <div id="achievements-grid" class="achievements-grid"></div>
+        </section>
+
+        <section id="agents" class="panel">
+          <h2>Agent Activity</h2>
+          <ul id="agent-feed" class="feed-list"></ul>
+          <h3 class="sub-heading">Recent XP</h3>
+          <ul id="xp-feed" class="feed-list compact"></ul>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="/dashboard/assets/app.js"></script>
+</body>
+</html>

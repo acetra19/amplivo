@@ -1,0 +1,87 @@
+{
+  "name": "Landing Page Registration",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "landing-lead",
+        "responseMode": "responseNode"
+      },
+      "id": "webhook-landing",
+      "name": "Webhook: Landing Lead",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/register",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}"
+      },
+      "id": "api-register",
+      "name": "API: Register",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.score }}",
+              "operation": "largerEqual",
+              "value2": 70
+            }
+          ]
+        }
+      },
+      "id": "if-high-score",
+      "name": "IF Score >= 70",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/outbound/send",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ lead_id: $('API: Register').item.json.lead_id, sequence: 'outbound_a', step: 1 }) }}"
+      },
+      "id": "send-outbound",
+      "name": "Brevo: Outbound Step 1",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($('API: Register').item.json) }}"
+      },
+      "id": "respond",
+      "name": "Respond",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1200, 300]
+    }
+  ],
+  "connections": {
+    "Webhook: Landing Lead": { "main": [[{ "node": "API: Register", "type": "main", "index": 0 }]] },
+    "API: Register": { "main": [[{ "node": "IF Score >= 70", "type": "main", "index": 0 }]] },
+    "IF Score >= 70": {
+      "main": [
+        [{ "node": "Brevo: Outbound Step 1", "type": "main", "index": 0 }],
+        [{ "node": "Respond", "type": "main", "index": 0 }]
+      ]
+    },
+    "Brevo: Outbound Step 1": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "agentur" }, { "name": "landing" }]
+}

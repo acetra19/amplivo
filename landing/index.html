@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agency Growth Platform – Free Trial</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="container header-inner">
+      <span class="logo">Amplivo</span>
+      <a href="#trial" class="btn btn-primary btn-sm">Start Free Trial</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">For marketing agencies &amp; SMMA teams</p>
+          <h1>Automate client acquisition.<br>Close more deals.</h1>
+          <p class="lead">
+            All-in-one CRM, funnels, and outreach automation built for agencies
+            that want to scale without hiring a bigger sales team.
+          </p>
+          <ul class="benefits">
+            <li>14-day free trial – no credit card required</li>
+            <li>White-label ready for your clients</li>
+            <li>Automated follow-up &amp; pipeline visibility</li>
+          </ul>
+          <p class="affiliate-note">We may earn a commission if you sign up. <a href="#disclosure">Details</a></p>
+        </div>
+
+        <div class="hero-form" id="trial">
+          <div class="card" id="register-card">
+            <h2>Get trial access</h2>
+            <p>Tell us about your agency – our AI assistant will guide you.</p>
+            <form id="register-form">
+              <label>
+                Work email
+                <input type="email" name="email" required placeholder="you@agency.com">
+              </label>
+              <label>
+                First name
+                <input type="text" name="first_name" placeholder="Alex">
+              </label>
+              <label>
+                Agency name
+                <input type="text" name="company" placeholder="Your Agency">
+              </label>
+              <button type="submit" class="btn btn-primary btn-block">Continue to chat →</button>
+            </form>
+            <p class="form-error" id="register-error" hidden></p>
+          </div>
+
+          <div class="card chat-card" id="chat-card" hidden>
+            <div class="chat-header">
+              <h2>Sales Assistant</h2>
+              <span class="badge" id="score-badge">Score: –</span>
+            </div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <form id="chat-form" class="chat-input-row">
+              <input type="text" id="chat-input" placeholder="Ask about features, pricing, trial..." autocomplete="off">
+              <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+            <a id="trial-link" class="trial-cta" href="#" target="_blank" rel="noopener" hidden>
+              Start your free trial →
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="features container">
+      <h2>Why agencies switch</h2>
+      <div class="feature-grid">
+        <article>
+          <h3>Unified CRM</h3>
+          <p>Contacts, pipelines, and tasks in one place – no more spreadsheet chaos.</p>
+        </article>
+        <article>
+          <h3>Funnels &amp; automation</h3>
+          <p>Build landing pages and automated follow-up sequences in minutes.</p>
+        </article>
+        <article>
+          <h3>Client-ready</h3>
+          <p>White-label the platform and deliver more value under your brand.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="disclosure container" id="disclosure">
+      <p><strong>Affiliate disclosure:</strong> This page contains affiliate links. If you purchase through our link, we may receive a commission at no extra cost to you.</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">© Amplivo · <a href="/dashboard" style="color:#8fa3bf">Command Center</a></div>
+  </footer>
+
+  <script src="/assets/chat.js"></script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings – Agency Command Center</title>
+  <link rel="stylesheet" href="/dashboard/assets/style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-icon">⚡</span>
+        <div>
+          <strong>Amplivo</strong>
+          <small>Command Center</small>
+        </div>
+      </div>
+      <nav>
+        <a href="/dashboard">Overview</a>
+        <a href="/dashboard/settings" class="nav-active">Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="/dashboard" class="link-muted">← Dashboard</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1>Settings &amp; API Keys</h1>
+          <p class="subtitle">Configure keys, domains, and agents – no .env editing required</p>
+        </div>
+        <div class="btn-row">
+          <button id="test-btn" class="btn btn-secondary">Test Connections</button>
+          <button id="save-btn" class="btn">Save Settings</button>
+        </div>
+      </header>
+
+      <div id="pin-banner" class="banner banner-info" hidden>
+        <label>Settings PIN required to save
+          <input type="password" id="settings-pin" placeholder="Enter PIN">
+        </label>
+      </div>
+
+      <div id="status-panel" class="status-panel" hidden></div>
+
+      <form id="settings-form">
+        <section class="panel settings-group" data-group="llm">
+          <h2>🤖 LLM Provider</h2>
+          <p class="group-desc">Groq is free/cheap. Anthropic optional for better copy.</p>
+          <div class="form-grid" id="fields-llm"></div>
+        </section>
+
+        <section class="panel settings-group" data-group="email">
+          <h2>📧 Email (Brevo)</h2>
+          <p class="group-desc">Outbound cold email + replies. Verify domain in Brevo dashboard.</p>
+          <div class="form-grid" id="fields-email"></div>
+        </section>
+
+        <section class="panel settings-group" data-group="domains">
+          <h2>🌐 Domains &amp; Deploy</h2>
+          <p class="group-desc">DNS A-records must point to your VPS. Caddy restart needed after domain changes.</p>
+          <div class="form-grid" id="fields-domains"></div>
+        </section>
+
+        <section class="panel settings-group" data-group="affiliate">
+          <h2>💰 Affiliate</h2>
+          <p class="group-desc">GoHighLevel or other product tracking.</p>
+          <div class="form-grid" id="fields-affiliate"></div>
+        </section>
+
+        <section class="panel settings-group" data-group="agent">
+          <h2>🎯 Agent ICP</h2>
+          <p class="group-desc">Ideal customer profile for lead scoring.</p>
+          <div class="form-grid" id="fields-agent"></div>
+        </section>
+
+        <section class="panel settings-group" data-group="security">
+          <h2>🔒 Security</h2>
+          <p class="group-desc">Optional PIN to protect settings changes.</p>
+          <div class="form-grid" id="fields-security"></div>
+        </section>
+      </form>
+
+      <section class="panel">
+        <h2>Export .env</h2>
+        <p class="group-desc">Backup for Docker deploy or VPS migration.</p>
+        <button type="button" id="export-btn" class="btn btn-secondary">Download .env</button>
+        <pre id="export-preview" class="export-preview" hidden></pre>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="/dashboard/assets/settings.js"></script>
+</body>
+</html>

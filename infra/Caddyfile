@@ -1,0 +1,20 @@
+{
+	email {$CADDY_ADMIN_EMAIL:admin@amplivo.net}
+}
+
+{$DASHBOARD_DOMAIN:dash.amplivo.net} {
+	redir / /dashboard 302
+	reverse_proxy api:8000
+}
+
+{$LANDING_DOMAIN:www.amplivo.net} {
+	reverse_proxy api:8000
+}
+
+{$API_DOMAIN:api.amplivo.net} {
+	reverse_proxy api:8000
+}
+
+{$N8N_DOMAIN:n8n.amplivo.net} {
+	reverse_proxy n8n:5678
+}
