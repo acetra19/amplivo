@@ -120,17 +120,56 @@ async def get_runtime(key: str) -> str:
     return _env_fallback(key)
 
 
+def _is_configured(raw: str) -> bool:
+    return bool(raw and raw not in ("", "change-me-postback-secret", "generate-a-random-32-character-key"))
+
+
+def _field_in_use(key: str, provider: str, configured: bool) -> bool:
+    if not configured:
+        return False
+    if key == "groq_api_key":
+        return provider == "groq"
+    if key == "anthropic_api_key":
+        return provider == "anthropic"
+    if key in {
+        "brevo_api_key",
+        "outbound_from_email",
+        "api_domain",
+        "landing_domain",
+        "dashboard_domain",
+        "n8n_host",
+        "n8n_webhook_url",
+        "affiliate_postback_secret",
+        "affiliate_tracking_base",
+    }:
+        return True
+    return False
+
+
 async def get_all_masked() -> dict:
     async with get_connection() as conn:
         rows = await conn.fetch("SELECT key, value, is_secret FROM app_settings ORDER BY key")
     db_vals = {r["key"]: r["value"] for r in rows}
-    result: dict[str, Any] = {"groups": {}, "configured": {}}
+    provider = db_vals.get("llm_provider") or _env_fallback("llm_provider") or "groq"
+    result: dict[str, Any] = {"groups": {}, "configured": {}, "summary": {}}
+
+    secret_total = 0
+    secret_configured = 0
+    active_keys: list[str] = []
 
     for key, meta in SETTING_FIELDS.items():
         raw = db_vals.get(key) or _env_fallback(key)
         is_secret = meta.get("secret", False)
         display = _mask(raw) if is_secret and raw else raw
-        configured = bool(raw and raw not in ("", "change-me-postback-secret", "generate-a-random-32-character-key"))
+        configured = _is_configured(raw)
+        in_use = _field_in_use(key, provider, configured)
+
+        if is_secret:
+            secret_total += 1
+            if configured:
+                secret_configured += 1
+        if in_use:
+            active_keys.append(key)
 
         group = meta["group"]
         result["groups"].setdefault(group, []).append({
@@ -139,10 +178,18 @@ async def get_all_masked() -> dict:
             "type": meta["type"],
             "value": display,
             "configured": configured,
+            "in_use": in_use,
+            "is_secret": is_secret,
             "options": meta.get("options"),
         })
         result["configured"][key] = configured
 
+    result["summary"] = {
+        "llm_provider": provider,
+        "secret_configured": secret_configured,
+        "secret_total": secret_total,
+        "active_keys": active_keys,
+    }
     return result
 
 
