@@ -9,26 +9,36 @@ if [ ! -f .env ]; then
   exit 1
 fi
 
-# shellcheck disable=SC1091
-source .env
+get_env() {
+  grep -E "^${1}=" .env | head -1 | cut -d= -f2- | tr -d '\r' \
+    | sed 's/^[[:space:]]*//;s/[[:space:]]*$//;s/^"\(.*\)"$/\1/'
+}
 
 required=(BREVO_API_KEY OUTBOUND_FROM_EMAIL N8N_HOST API_DOMAIN N8N_WEBHOOK_URL POSTGRES_PASSWORD N8N_ENCRYPTION_KEY AFFILIATE_POSTBACK_SECRET)
 for var in "${required[@]}"; do
-  if [ -z "${!var:-}" ]; then
+  val="$(get_env "$var")"
+  if [ -z "$val" ]; then
     echo "ERROR: Set $var in .env before deploying."
     exit 1
   fi
+  export "$var=$val"
 done
 
-provider="${LLM_PROVIDER:-groq}"
-if [ "$provider" = "groq" ] && [ -z "${GROQ_API_KEY:-}" ]; then
+provider="$(get_env LLM_PROVIDER)"
+provider="${provider:-groq}"
+groq_key="$(get_env GROQ_API_KEY)"
+anthropic_key="$(get_env ANTHROPIC_API_KEY)"
+if [ "$provider" = "groq" ] && [ -z "$groq_key" ]; then
   echo "ERROR: Set GROQ_API_KEY in .env (or switch LLM_PROVIDER=anthropic)"
   exit 1
 fi
-if [ "$provider" = "anthropic" ] && [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+if [ "$provider" = "anthropic" ] && [ -z "$anthropic_key" ]; then
   echo "ERROR: Set ANTHROPIC_API_KEY in .env"
   exit 1
 fi
+
+LANDING_DOMAIN="$(get_env LANDING_DOMAIN)"
+DASHBOARD_DOMAIN="$(get_env DASHBOARD_DOMAIN)"
 
 echo "==> Pulling latest images..."
 docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
