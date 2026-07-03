@@ -209,6 +209,7 @@ nav a:hover, .nav-active { background: var(--surface2); color: var(--text); }
 }
 .tag-ok { font-size: 0.65rem; color: var(--success); margin-left: 0.35rem; }
 .tag-miss { font-size: 0.65rem; color: var(--danger, #f87171); margin-left: 0.35rem; }
+.field-saved { font-size: 0.75rem; color: var(--success); }
 
 .status-panel { margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.4rem; }
 .status-item { padding: 0.55rem 0.75rem; border-radius: 8px; font-size: 0.85rem; background: var(--surface2); }

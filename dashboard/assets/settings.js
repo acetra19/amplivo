@@ -11,21 +11,28 @@
 
   function fieldHtml(f) {
     const configured = f.configured ? '<span class="tag-ok">configured</span>' : '<span class="tag-miss">missing</span>';
-    const placeholder = f.type === "password" ? "Enter new value (leave blank to keep)" : "";
+    const isPassword = f.type === "password";
+    const placeholder = isPassword
+      ? (f.configured ? "Leave blank to keep stored key" : "Enter API key")
+      : "";
     let input = "";
+    let storedNote = "";
 
     if (f.type === "select") {
-      input = '<select name="' + f.key + '" data-secret="' + (f.type === "password") + '">' +
+      input = '<select name="' + f.key + '" data-secret="false">' +
         f.options.map(function (o) {
           return '<option value="' + o + '"' + (f.value === o ? " selected" : "") + '>' + o + '</option>';
         }).join("") + "</select>";
     } else {
-      input = '<input type="' + (f.type === "password" ? "password" : "text") + '" name="' + f.key + '" ' +
-        'value="' + (f.type === "password" ? "" : (f.value || "")) + '" placeholder="' + placeholder + '" data-secret="' + (f.type === "password") + '">';
+      input = '<input type="' + (isPassword ? "password" : "text") + '" name="' + f.key + '" ' +
+        'value="' + (isPassword ? "" : (f.value || "")) + '" placeholder="' + placeholder + '" data-secret="' + isPassword + '">';
+      if (isPassword && f.configured) {
+        storedNote = '<span class="field-saved">Stored securely' + (f.value ? " · " + f.value : "") + "</span>";
+      }
     }
 
     return '<label class="field-label">' + f.label + " " + configured +
-      '<span class="field-hint">' + f.key + "</span>" + input + "</label>";
+      '<span class="field-hint">' + f.key + "</span>" + input + storedNote + "</label>";
   }
 
   function renderForm(data) {
@@ -73,7 +80,8 @@
         throw new Error(text.slice(0, 120) || "Server error");
       }
       if (!res.ok) throw new Error(data.detail || "Save failed");
-      toast("Saved " + data.count + " settings – active immediately");
+      const names = (data.saved || []).join(", ");
+      toast("Saved " + data.count + " setting(s). Secret keys are hidden but stored." + (names ? " (" + names + ")" : ""));
       load();
     } catch (err) {
       toast(err.message);
