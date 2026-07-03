@@ -26,10 +26,15 @@ async def update_settings(payload: SettingsUpdate):
     try:
         result = await save_settings(payload.values, payload.pin)
         if result["count"] > 0:
-            await award_xp("settings_saved", f"Updated {result['count']} settings")
+            try:
+                await award_xp("settings_saved", f"Updated {result['count']} settings")
+            except Exception:
+                pass
         return {"ok": True, **result}
     except PermissionError as exc:
         raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @router.post("/test")

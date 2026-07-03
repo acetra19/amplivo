@@ -65,7 +65,13 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ values: collectValues(), pin: pin }),
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseErr) {
+        throw new Error(text.slice(0, 120) || "Server error");
+      }
       if (!res.ok) throw new Error(data.detail || "Save failed");
       toast("Saved " + data.count + " settings – active immediately");
       load();

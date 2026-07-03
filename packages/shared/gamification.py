@@ -67,6 +67,9 @@ async def award_xp(event_type: str, description: str | None = None, metadata: di
 
     async with get_connection() as conn:
         await conn.execute(
+            "INSERT INTO operator_profile (id) VALUES (1) ON CONFLICT (id) DO NOTHING",
+        )
+        await conn.execute(
             """INSERT INTO xp_events (event_type, xp_amount, description, metadata)
                VALUES ($1, $2, $3, $4::jsonb)""",
             event_type, amount, description, json.dumps(metadata or {}),
@@ -119,6 +122,9 @@ async def award_xp(event_type: str, description: str | None = None, metadata: di
 
         new_achievements = await _check_achievements(conn)
 
+    if not row:
+        return {"xp_awarded": amount, "xp_total": amount, "level": 1, "title": title_for_level(1), "new_achievements": [], "streak_days": 0}
+
     xp_total = row["xp_total"]
     level = level_from_xp(xp_total)
     return {
@@ -146,6 +152,12 @@ async def _check_achievements(conn) -> list[str]:
              (SELECT streak_days FROM operator_profile WHERE id=1) AS streak"""
     )
 
+    if not checks:
+        return unlocked
+
+    xp_val = checks["xp"] or 0
+    streak_val = checks["streak"] or 0
+
     rules = [
         ("first_lead", checks["leads"] >= 1),
         ("first_email", checks["emails"] >= 1),
@@ -155,8 +167,8 @@ async def _check_achievements(conn) -> list[str]:
         ("first_qualified", checks["qualified"] >= 1),
         ("first_trial", checks["trials"] >= 1),
         ("first_conversion", checks["conversions"] >= 1),
-        ("level_5", level_from_xp(checks["xp"]) >= 5),
-        ("streak_7", checks["streak"] >= 7),
+        ("level_5", level_from_xp(xp_val) >= 5),
+        ("streak_7", streak_val >= 7),
     ]
 
     for slug, condition in rules:
