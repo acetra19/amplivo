@@ -47,7 +47,10 @@ async def seed_settings_from_env() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    from packages.shared.schema_bootstrap import ensure_app_schema
+
     try:
+        await ensure_app_schema()
         await seed_settings_from_env()
     except Exception:
         pass
