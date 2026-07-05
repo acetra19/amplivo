@@ -25,7 +25,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json) }}"
+        "jsonBody": "={{ JSON.stringify($json.body) }}"
       },
       "id": "api-record-conversion",
       "name": "API: Record Conversion",

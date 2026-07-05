@@ -19,7 +19,7 @@
         "url": "http://api:8000/leads",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json) }}"
+        "jsonBody": "={{ JSON.stringify($json.body) }}"
       },
       "id": "api-score-lead",
       "name": "API: Score Lead",

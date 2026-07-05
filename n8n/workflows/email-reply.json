@@ -19,7 +19,7 @@
         "url": "http://api:8000/webhooks/email-reply",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ lead_id: $json.lead_id, body: $json.reply_text }) }}"
+        "jsonBody": "={{ JSON.stringify({ lead_id: $json.body.lead_id, body: $json.body.reply_text }) }}"
       },
       "id": "classify-reply",
       "name": "API: Classify Reply",
@@ -49,7 +49,7 @@
         "url": "http://api:8000/outbound/reply",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ lead_id: $('Webhook: Email Reply').item.json.lead_id, subject: 'Re: your question', body: $json.suggested_response }) }}"
+        "jsonBody": "={{ JSON.stringify({ lead_id: $('Webhook: Email Reply').item.json.body.lead_id, subject: 'Re: your question', body: $json.suggested_response }) }}"
       },
       "id": "brevo-objection-reply",
       "name": "Brevo: Objection Reply",
