@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import date
+from datetime import date, timedelta
 
 from packages.shared.db import get_connection
 
@@ -63,6 +63,7 @@ async def award_xp(event_type: str, description: str | None = None, metadata: di
         return {"xp_awarded": 0}
 
     today = date.today()
+    yesterday = today - timedelta(days=1)
     new_achievements: list[str] = []
 
     async with get_connection() as conn:
@@ -79,14 +80,14 @@ async def award_xp(event_type: str, description: str | None = None, metadata: di
                  xp_total = xp_total + $1,
                  last_active = $2,
                  streak_days = CASE
-                   WHEN last_active = $2 - 1 THEN streak_days + 1
+                   WHEN last_active = $3 THEN streak_days + 1
                    WHEN last_active = $2 THEN streak_days
                    ELSE 1
                  END,
                  updated_at = now()
                WHERE id = 1
                RETURNING xp_total, streak_days""",
-            amount, today,
+            amount, today, yesterday,
         )
 
         for quest in DAILY_QUESTS:
