@@ -15,6 +15,7 @@ REQUIRED_FILES = [
     "Dockerfile",
     "database/schema.sql",
     "database/03-knowledge-seed.sql",
+    "database/06-systeme-knowledge-seed.sql",
     "landing/index.html",
     "packages/api/main.py",
     "scripts/deploy-vps.sh",
@@ -63,10 +64,10 @@ def main() -> int:
             if not env.get(key):
                 warnings.append(f".env: {key} not set")
 
-        if env.get("AFFILIATE_TRACKING_BASE", "").startswith("https://your-"):
-            warnings.append("AFFILIATE_TRACKING_BASE still placeholder")
-        if "YOUR-AFFILIATE" in env.get("AFFILIATE_TRACKING_BASE", ""):
-            warnings.append("Set real GoHighLevel affiliate link in .env")
+        if not env.get("AFFILIATE_TRACKING_BASE"):
+            warnings.append("AFFILIATE_TRACKING_BASE not set in .env")
+        if env.get("AFFILIATE_PRODUCT_SLUG", "gohighlevel") == "gohighlevel" and not env.get("AFFILIATE_TRACKING_BASE"):
+            warnings.append("Consider AFFILIATE_PRODUCT_SLUG=systeme-io with your Systeme.io link")
 
         provider = env.get("LLM_PROVIDER", "groq").lower()
         if provider == "groq" and not env.get("GROQ_API_KEY"):

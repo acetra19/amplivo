@@ -42,7 +42,7 @@
       email: fd.get("email"),
       first_name: fd.get("first_name") || null,
       company: fd.get("company") || null,
-      industry: "marketing_agency",
+      industry: "online_business",
       source: "landing",
     };
 

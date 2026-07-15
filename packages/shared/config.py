@@ -46,16 +46,16 @@ class Settings(BaseSettings):
     deepgram_api_key: str = ""
     elevenlabs_api_key: str = ""
 
-    affiliate_product_slug: str = "gohighlevel"
-    affiliate_tracking_base: str = ""
+    affiliate_product_slug: str = "systeme-io"
+    affiliate_tracking_base: str = "https://systeme.io/de?sa=sa0276553274cd169665f8769608156721f068edf7"
     affiliate_postback_secret: str = ""
 
     landing_domain: str = ""
     cors_origins: str = "*"
 
-    icp_industry: str = "marketing_agency"
-    icp_min_employees: int = 2
-    icp_max_employees: int = 50
+    icp_industry: str = "online_business"
+    icp_min_employees: int = 1
+    icp_max_employees: int = 20
     lead_score_threshold: int = 70
 
     n8n_webhook_base: str = "http://localhost:5678"

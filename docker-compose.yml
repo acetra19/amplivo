@@ -16,6 +16,7 @@ services:
       - ./database/03-knowledge-seed.sql:/docker-entrypoint-initdb.d/03-knowledge-seed.sql:ro
       - ./database/04-gamification.sql:/docker-entrypoint-initdb.d/04-gamification.sql:ro
       - ./database/05-settings.sql:/docker-entrypoint-initdb.d/05-settings.sql:ro
+      - ./database/06-systeme-knowledge-seed.sql:/docker-entrypoint-initdb.d/06-systeme-knowledge-seed.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-agentur}"]
       interval: 5s
@@ -85,10 +86,10 @@ services:
       OUTBOUND_FROM_EMAIL: ${OUTBOUND_FROM_EMAIL:-sales@amplivo.net}
       OUTBOUND_FROM_NAME: ${OUTBOUND_FROM_NAME:-Amplivo Sales Team}
       DAILY_EMAIL_LIMIT: ${DAILY_EMAIL_LIMIT:-30}
-      AFFILIATE_PRODUCT_SLUG: ${AFFILIATE_PRODUCT_SLUG:-gohighlevel}
+      AFFILIATE_PRODUCT_SLUG: ${AFFILIATE_PRODUCT_SLUG:-systeme-io}
       AFFILIATE_TRACKING_BASE: ${AFFILIATE_TRACKING_BASE:-}
       AFFILIATE_POSTBACK_SECRET: ${AFFILIATE_POSTBACK_SECRET:-}
-      ICP_INDUSTRY: ${ICP_INDUSTRY:-marketing_agency}
+      ICP_INDUSTRY: ${ICP_INDUSTRY:-online_business}
       LEAD_SCORE_THRESHOLD: ${LEAD_SCORE_THRESHOLD:-70}
       CORS_ORIGINS: ${CORS_ORIGINS:-*}
       N8N_WEBHOOK_BASE: ${N8N_WEBHOOK_URL:-http://n8n:5678}

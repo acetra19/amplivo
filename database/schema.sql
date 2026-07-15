@@ -203,7 +203,7 @@ CREATE TABLE daily_metrics (
 INSERT INTO affiliate_products (slug, name, category, commission_pct, commission_type, cookie_days, avg_monthly_price, trial_days, affiliate_url, icp_notes)
 VALUES
   ('gohighlevel', 'GoHighLevel', 'agency_saas', 40.00, 'recurring', 90, 297.00, 14, 'https://YOUR-AFFILIATE-LINK', 'Local marketing agencies, freelancers, SMMA'),
-  ('systeme-io', 'Systeme.io', 'marketing_automation', 40.00, 'recurring', 60, 27.00, 14, 'https://YOUR-AFFILIATE-LINK', 'Solopreneurs, course creators, small agencies'),
+  ('systeme-io', 'Systeme.io', 'marketing_automation', 60.00, 'recurring', 365, 97.00, 0, 'https://systeme.io/de?sa=sa0276553274cd169665f8769608156721f068edf7', 'Solopreneurs, coaches, course creators, freelancers'),
   ('semrush', 'Semrush', 'seo_tools', 40.00, 'recurring', 120, 129.00, 7, 'https://YOUR-AFFILIATE-LINK', 'SEO agencies, content teams, in-house marketers'),
   ('hubspot', 'HubSpot', 'crm', 30.00, 'recurring', 180, 800.00, 14, 'https://YOUR-AFFILIATE-LINK', 'SMB sales teams, growing B2B companies'),
   ('clickfunnels', 'ClickFunnels', 'funnel_builder', 30.00, 'recurring', 45, 147.00, 14, 'https://YOUR-AFFILIATE-LINK', 'Coaches, info products, e-commerce funnels');

@@ -13,6 +13,8 @@ COPY packages/ ./packages/
 COPY agents/ ./agents/
 COPY landing/ ./landing/
 COPY dashboard/ ./dashboard/
+COPY scripts/ ./scripts/
+COPY database/ ./database/
 
 ENV PYTHONPATH=/app
 

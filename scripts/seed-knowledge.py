@@ -12,14 +12,24 @@ sys.path.insert(0, str(ROOT))
 
 from packages.shared.db import get_connection
 
+SEED_FILES = [
+    "database/03-knowledge-seed.sql",
+    "database/06-systeme-knowledge-seed.sql",
+]
+
 
 async def main() -> None:
-    sql_path = ROOT / "database" / "03-knowledge-seed.sql"
-    sql = sql_path.read_text(encoding="utf-8")
-    statements = [s.strip() for s in sql.split(";") if s.strip() and not s.strip().startswith("--")]
     async with get_connection() as conn:
-        for stmt in statements:
-            await conn.execute(stmt)
+        for rel_path in SEED_FILES:
+            sql_path = ROOT / rel_path
+            sql = sql_path.read_text(encoding="utf-8")
+            statements = [
+                s.strip() for s in sql.split(";")
+                if s.strip() and not s.strip().startswith("--")
+            ]
+            for stmt in statements:
+                await conn.execute(stmt)
+            print(f"Applied {rel_path}")
     count = await _count_chunks()
     print(f"Knowledge seed applied. Total chunks: {count}")
 

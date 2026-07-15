@@ -50,8 +50,8 @@ class OutboundEmailAgent:
         if not lead:
             raise ValueError(f"Lead {lead_id} not found")
 
-        product = await get_runtime("affiliate_product_slug") or "gohighlevel"
-        icp = await get_runtime("icp_industry") or "marketing_agency"
+        product = await get_runtime("affiliate_product_slug") or "systeme-io"
+        icp = await get_runtime("icp_industry") or "online_business"
         min_emp = await get_runtime("icp_min_employees") or "2"
         max_emp = await get_runtime("icp_max_employees") or "50"
 
