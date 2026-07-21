@@ -19,67 +19,29 @@
         "url": "http://api:8000/webhooks/email-reply",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ lead_id: $json.body.lead_id, body: $json.body.reply_text }) }}"
+        "jsonBody": "={{ JSON.stringify({ lead_id: $json.body.lead_id, body: $json.body.reply_text, subject: $json.body.subject || null }) }}"
       },
-      "id": "classify-reply",
-      "name": "API: Classify Reply",
+      "id": "handle-reply",
+      "name": "API: Handle Reply",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [480, 300]
     },
     {
       "parameters": {
-        "rules": {
-          "values": [
-            { "conditions": { "string": [{ "value1": "={{ $json.classification }}", "operation": "equals", "value2": "interested" }] }, "renameOutput": true, "outputKey": "interested" },
-            { "conditions": { "string": [{ "value1": "={{ $json.classification }}", "operation": "equals", "value2": "objection" }] }, "renameOutput": true, "outputKey": "objection" },
-            { "conditions": { "string": [{ "value1": "={{ $json.classification }}", "operation": "equals", "value2": "unsubscribe" }] }, "renameOutput": true, "outputKey": "unsubscribe" }
-          ]
-        }
-      },
-      "id": "switch-classification",
-      "name": "Switch Classification",
-      "type": "n8n-nodes-base.switch",
-      "typeVersion": 3,
-      "position": [720, 300]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "http://api:8000/outbound/reply",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ lead_id: $('Webhook: Email Reply').item.json.body.lead_id, subject: 'Re: your question', body: $json.suggested_response }) }}"
-      },
-      "id": "brevo-objection-reply",
-      "name": "Brevo: Objection Reply",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [960, 400]
-    },
-    {
-      "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ ok: true, classification: $('API: Classify Reply').item.json.classification, voice_queue: $('API: Classify Reply').item.json.voice_queue }) }}"
+        "responseBody": "={{ JSON.stringify({ ok: true, classification: $json.classification, auto_reply: $json.auto_reply, voice_queue: $json.voice_queue }) }}"
       },
       "id": "respond",
       "name": "Respond",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1200, 300]
+      "position": [720, 300]
     }
   ],
   "connections": {
-    "Webhook: Email Reply": { "main": [[{ "node": "API: Classify Reply", "type": "main", "index": 0 }]] },
-    "API: Classify Reply": { "main": [[{ "node": "Switch Classification", "type": "main", "index": 0 }]] },
-    "Switch Classification": {
-      "main": [
-        [{ "node": "Respond", "type": "main", "index": 0 }],
-        [{ "node": "Brevo: Objection Reply", "type": "main", "index": 0 }],
-        [{ "node": "Respond", "type": "main", "index": 0 }]
-      ]
-    },
-    "Brevo: Objection Reply": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] }
+    "Webhook: Email Reply": { "main": [[{ "node": "API: Handle Reply", "type": "main", "index": 0 }]] },
+    "API: Handle Reply": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] }
   },
   "settings": { "executionOrder": "v1" },
   "tags": [{ "name": "agentur" }, { "name": "lean" }]

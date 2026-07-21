@@ -214,32 +214,32 @@ INSERT INTO email_sequences (slug, name, description) VALUES
 
 INSERT INTO email_sequence_steps (sequence_id, step_order, delay_days, subject_tpl, body_tpl)
 SELECT id, 1, 0,
-  'Quick question about {{company}}''s client acquisition',
-  'Hi {{first_name}},\n\nI noticed {{company}} works in {{industry}}. Many agencies your size struggle with client follow-up and pipeline visibility.\n\nWe help agencies automate outreach and close more deals with a proven platform – most teams see results within the first 14-day trial.\n\nWould a 10-minute walkthrough be useful?\n\nBest,\n{{sender_name}}'
+  'Quick question about {{company}}''s online setup',
+  'Hi {{first_name}},\n\nI noticed {{company}} is active in {{industry}}. Many coaches and online entrepreneurs still pay for 3–5 separate tools (funnels, email, courses, payments).\n\nWe help founders consolidate that stack with an all-in-one platform — most start on a free plan with no credit card.\n\nWould it help if I sent you a free account link?\n\nBest,\n{{sender_name}}'
 FROM email_sequences WHERE slug = 'outbound_a';
 
 INSERT INTO email_sequence_steps (sequence_id, step_order, delay_days, subject_tpl, body_tpl)
 SELECT id, 2, 3,
   'Re: Quick question about {{company}}',
-  'Hi {{first_name}},\n\nJust following up – happy to share how similar agencies cut manual follow-up by 60%.\n\nHere is a free resource: [link]\n\nOr reply with a time that works for a quick demo.\n\nBest,\n{{sender_name}}'
+  'Hi {{first_name}},\n\nJust following up — happy to share how similar online businesses cut tool costs and launch faster with one dashboard for funnels, email, and sales.\n\nReply "interested" and I will send the free signup link.\n\nBest,\n{{sender_name}}'
 FROM email_sequences WHERE slug = 'outbound_a';
 
 INSERT INTO email_sequence_steps (sequence_id, step_order, delay_days, subject_tpl, body_tpl)
 SELECT id, 3, 7,
   'Last note – {{company}}',
-  'Hi {{first_name}},\n\nLast email from me. If automating client acquisition is not a priority right now, no worries.\n\nIf it is, reply "interested" and I will send trial access.\n\nBest,\n{{sender_name}}'
+  'Hi {{first_name}},\n\nLast email from me. If simplifying your online business stack is not a priority right now, no worries.\n\nIf it is, reply "interested" and I will send free access.\n\nBest,\n{{sender_name}}'
 FROM email_sequences WHERE slug = 'outbound_a';
 
 INSERT INTO email_sequence_steps (sequence_id, step_order, delay_days, subject_tpl, body_tpl)
 SELECT id, 1, 0,
-  'Free guide: scaling a {{industry}} agency',
-  'Hi {{first_name}},\n\nI put together a short guide on how agencies like {{company}} automate client follow-up without hiring more staff.\n\nNo pitch – just practical steps. Want me to send it over?\n\nBest,\n{{sender_name}}'
+  'Free guide: launching {{industry}} online',
+  'Hi {{first_name}},\n\nI put together a short guide on how businesses like {{company}} launch funnels and email automation without a big tech stack.\n\nNo pitch — just practical steps. Want me to send it over?\n\nBest,\n{{sender_name}}'
 FROM email_sequences WHERE slug = 'nurture_b';
 
 INSERT INTO email_sequence_steps (sequence_id, step_order, delay_days, subject_tpl, body_tpl)
 SELECT id, 2, 5,
-  'Re: agency growth guide',
-  'Hi {{first_name}},\n\nJust checking in – happy to share the guide if useful.\n\nMany agencies your size use all-in-one platforms to cut tool costs. I can point you to a free trial if interested.\n\nBest,\n{{sender_name}}'
+  'Re: online launch guide',
+  'Hi {{first_name}},\n\nJust checking in — happy to share the guide if useful.\n\nMany solopreneurs use an all-in-one platform to replace multiple subscriptions. I can point you to a free plan if you want to explore.\n\nBest,\n{{sender_name}}'
 FROM email_sequences WHERE slug = 'nurture_b';
 
 -- ─── Updated_at trigger ──────────────────────────────────────────────────────

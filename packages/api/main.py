@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from uuid import UUID
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -18,6 +18,8 @@ from agents.qualifier_chat.agent import QualifierChatAgent
 from packages.shared.config import settings
 from packages.shared.db import get_connection, get_lead_by_email, get_lead_by_id, upsert_lead
 from packages.api.settings_routes import router as settings_router
+from packages.shared.brevo_inbound import parse_brevo_inbound
+from packages.shared.settings_store import get_runtime
 from packages.shared.gamification import award_xp, get_dashboard_state
 from packages.shared.models import LeadCreate
 from packages.shared.queue import dequeue_voice_call, enqueue_voice_call, ping_redis, voice_queue_length
@@ -26,8 +28,8 @@ from packages.shared.stats import get_pipeline_stats
 LANDING_DIR = Path(__file__).resolve().parents[2] / "landing"
 DASHBOARD_DIR = Path(__file__).resolve().parents[2] / "dashboard"
 WELCOME_MESSAGE = (
-    "Hi! I am your sales assistant. I can answer questions about the platform, "
-    "pricing, and whether it fits your agency. What would you like to know?"
+    "Hi! I am your sales assistant. I can answer questions about Systeme.io, "
+    "pricing, and whether it fits your online business. What would you like to know?"
 )
 
 
@@ -145,7 +147,7 @@ class RegisterRequest(BaseModel):
     email: EmailStr
     first_name: str | None = None
     company: str | None = None
-    industry: str = "marketing_agency"
+    industry: str = "online_business"
     source: str = "landing"
 
 
@@ -194,16 +196,12 @@ async def chat(req: ChatRequest):
 class ReplyWebhook(BaseModel):
     lead_id: UUID
     body: str
+    subject: str | None = None
 
 
 @app.post("/webhooks/email-reply")
 async def email_reply(req: ReplyWebhook):
-    result = await app.state.outbound.classify_reply(req.lead_id, req.body)
-    payload = result.model_dump()
-    if result.should_escalate_voice or result.classification.value == "interested":
-        queue = await enqueue_voice_call(req.lead_id, reason=result.classification.value)
-        payload["voice_queue"] = queue
-    return payload
+    return await app.state.outbound.handle_reply(req.lead_id, req.body, req.subject)
 
 
 class VoiceQueueRequest(BaseModel):
@@ -250,13 +248,6 @@ class OutboundReplyRequest(BaseModel):
     body: str
 
 
-class BrevoInboundWebhook(BaseModel):
-    from_email: EmailStr
-    subject: str | None = None
-    text: str | None = None
-    html: str | None = None
-
-
 @app.post("/outbound/send")
 async def outbound_send(req: OutboundSendRequest):
     result = await app.state.outbound.send_sequence_step(req.lead_id, req.sequence, req.step)
@@ -292,17 +283,29 @@ async def outbound_reply(req: OutboundReplyRequest):
 
 
 @app.post("/webhooks/brevo-inbound")
-async def brevo_inbound(payload: BrevoInboundWebhook):
-    lead = await get_lead_by_email(payload.from_email)
-    if not lead:
-        return {"ok": False, "reason": "unknown_sender"}
+async def brevo_inbound(request: Request):
+    try:
+        raw = await request.json()
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="Invalid JSON payload") from exc
 
-    body = payload.text or payload.html or ""
-    result = await app.state.outbound.classify_reply(lead["id"], body)
-    data = result.model_dump()
-    if result.should_escalate_voice or result.classification.value == "interested":
-        data["voice_queue"] = await enqueue_voice_call(lead["id"], reason=result.classification.value)
-    return data
+    if not isinstance(raw, dict):
+        raise HTTPException(status_code=400, detail="Expected JSON object")
+
+    parsed = parse_brevo_inbound(raw)
+    if not parsed:
+        return {"ok": False, "reason": "unparseable_payload"}
+
+    lead = await get_lead_by_email(parsed["from_email"])
+    if not lead:
+        return {"ok": False, "reason": "unknown_sender", "from_email": parsed["from_email"]}
+
+    data = await app.state.outbound.handle_reply(
+        lead["id"],
+        parsed.get("text") or "",
+        parsed.get("subject"),
+    )
+    return {"ok": True, **data}
 
 
 @app.post("/webhooks/affiliate")
@@ -310,8 +313,6 @@ async def affiliate_postback(
     payload: AffiliatePostback,
     x_postback_secret: str | None = Header(default=None),
 ):
-    from packages.shared.settings_store import get_runtime
-
     expected = await get_runtime("affiliate_postback_secret")
     if not expected:
         expected = settings.affiliate_postback_secret

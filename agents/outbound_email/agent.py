@@ -5,6 +5,7 @@ from __future__ import annotations
 import time
 from uuid import UUID
 
+from packages.shared.affiliate import get_affiliate_url
 from packages.shared.brevo import BrevoError, send_email
 from packages.shared.config import settings
 from packages.shared.db import (
@@ -23,10 +24,12 @@ from packages.shared.gamification import award_xp
 from packages.shared.llm import classify_text, extract_json, generate_text
 from packages.shared.settings_store import get_runtime
 from packages.shared.models import ClassifiedReply, LeadScoreResult, ReplyClassification
+from packages.shared.queue import enqueue_voice_call
 from packages.shared.rate_limit import can_send, remaining_quota
 
 
-SCORE_SYSTEM = """You are a B2B lead scoring agent for an affiliate sales agency.
+SCORE_SYSTEM = """You are a lead scoring agent for an affiliate sales agency selling Systeme.io.
+ICP: solopreneurs, coaches, course creators, freelancers, small online businesses.
 Score leads 0-100 based on ICP fit. Return ONLY valid JSON:
 {"score": int, "icp_match": bool, "reasoning": str, "recommended_sequence": "outbound_a"|"nurture_b"}"""
 
@@ -52,8 +55,8 @@ class OutboundEmailAgent:
 
         product = await get_runtime("affiliate_product_slug") or "systeme-io"
         icp = await get_runtime("icp_industry") or "online_business"
-        min_emp = await get_runtime("icp_min_employees") or "2"
-        max_emp = await get_runtime("icp_max_employees") or "50"
+        min_emp = await get_runtime("icp_min_employees") or "1"
+        max_emp = await get_runtime("icp_max_employees") or "20"
 
         prompt = f"""Score this lead for product: {product}
 ICP: {icp}, {min_emp}-{max_emp} employees
@@ -207,7 +210,8 @@ Lead data:
         if not lead:
             raise ValueError(f"Lead {lead_id} not found")
 
-        prompt = f"""Personalize this email template for the lead. Keep it concise, professional, in English.
+        prompt = f"""Personalize this cold email template for the lead. Keep it concise, professional, in English.
+Product context: all-in-one platform for online businesses (funnels, email, courses). Do not include affiliate links in cold emails.
 Do not invent facts. Return JSON: {{"subject": str, "body": str}}
 
 Lead: {dict(lead)}
@@ -249,6 +253,12 @@ Reply:
                     "UPDATE leads SET do_not_contact = true, status = 'unsubscribed' WHERE id = $1",
                     lead_id,
                 )
+        else:
+            async with get_connection() as conn:
+                await conn.execute(
+                    "UPDATE leads SET status = 'replied'::lead_status, updated_at = now() WHERE id = $1",
+                    lead_id,
+                )
 
         await log_agent_run(
             self.name,
@@ -261,3 +271,55 @@ Reply:
         if result.classification == ReplyClassification.INTERESTED:
             await award_xp("reply_interested", f"Interested: {lead['email']}")
         return result
+
+    async def handle_reply(
+        self,
+        lead_id: UUID,
+        reply_body: str,
+        subject: str | None = None,
+    ) -> dict:
+        """Classify inbound reply and auto-send trial link or objection response."""
+        result = await self.classify_reply(lead_id, reply_body)
+        payload = result.model_dump()
+        payload["auto_reply"] = None
+
+        if result.classification == ReplyClassification.INTERESTED:
+            affiliate_url = await get_affiliate_url()
+            if affiliate_url:
+                subj, body = self._interested_reply(await get_lead_by_id(lead_id), affiliate_url)
+                payload["auto_reply"] = await self.send_reply_email(lead_id, subj, body)
+            async with get_connection() as conn:
+                await conn.execute(
+                    "UPDATE leads SET status = 'qualified'::lead_status, updated_at = now() WHERE id = $1",
+                    lead_id,
+                )
+            payload["voice_queue"] = await enqueue_voice_call(lead_id, reason="interested")
+
+        elif (
+            result.classification == ReplyClassification.OBJECTION
+            and result.confidence >= 0.85
+            and result.suggested_response
+        ):
+            reply_subject = subject if subject and subject.lower().startswith("re:") else f"Re: {subject or 'your question'}"
+            payload["auto_reply"] = await self.send_reply_email(
+                lead_id, reply_subject, result.suggested_response,
+            )
+
+        elif result.should_escalate_voice:
+            payload["voice_queue"] = await enqueue_voice_call(
+                lead_id, reason=result.classification.value,
+            )
+
+        return payload
+
+    def _interested_reply(self, lead: dict | None, affiliate_url: str) -> tuple[str, str]:
+        name = (lead or {}).get("first_name") or "there"
+        sender = settings.outbound_from_name
+        body = (
+            f"Hi {name},\n\n"
+            "Great to hear you are interested.\n\n"
+            f"Start free here (no credit card required):\n{affiliate_url}\n\n"
+            "You can set up funnels, email, and your first offer in one place.\n\n"
+            f"Best,\n{sender}"
+        )
+        return "Your free Systeme.io account link", body

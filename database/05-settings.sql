@@ -17,6 +17,7 @@ INSERT INTO app_settings (key, is_secret) VALUES
   ('brevo_api_key', true),
   ('outbound_from_email', false),
   ('outbound_from_name', false),
+  ('outbound_reply_to_email', false),
   ('daily_email_limit', false),
   ('api_domain', false),
   ('landing_domain', false),

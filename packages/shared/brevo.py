@@ -21,6 +21,7 @@ async def send_email(
     *,
     html: bool = False,
     to_name: str | None = None,
+    reply_to: str | None = None,
 ) -> dict:
     api_key = await get_runtime("brevo_api_key")
     if not api_key:
@@ -28,12 +29,20 @@ async def send_email(
 
     from_email = await get_runtime("outbound_from_email") or settings.outbound_from_email
     from_name = await get_runtime("outbound_from_name") or settings.outbound_from_name
+    reply_to_email = (
+        reply_to
+        or await get_runtime("outbound_reply_to_email")
+        or settings.outbound_reply_to_email
+        or None
+    )
 
     payload = {
         "sender": {"name": from_name, "email": from_email},
         "to": [{"email": to_email, "name": to_name or to_email}],
         "subject": subject,
     }
+    if reply_to_email:
+        payload["replyTo"] = {"email": reply_to_email, "name": from_name}
     if html:
         payload["htmlContent"] = body
     else:
