@@ -282,33 +282,42 @@ Reply:
         result = await self.classify_reply(lead_id, reply_body)
         payload = result.model_dump()
         payload["auto_reply"] = None
+        payload["auto_reply_error"] = None
 
-        if result.classification == ReplyClassification.INTERESTED:
-            affiliate_url = await get_affiliate_url()
-            if affiliate_url:
-                subj, body = self._interested_reply(await get_lead_by_id(lead_id), affiliate_url)
-                payload["auto_reply"] = await self.send_reply_email(lead_id, subj, body)
-            async with get_connection() as conn:
-                await conn.execute(
-                    "UPDATE leads SET status = 'qualified'::lead_status, updated_at = now() WHERE id = $1",
-                    lead_id,
+        try:
+            if result.classification == ReplyClassification.INTERESTED:
+                affiliate_url = await get_affiliate_url()
+                if affiliate_url:
+                    subj, body = self._interested_reply(await get_lead_by_id(lead_id), affiliate_url)
+                    payload["auto_reply"] = await self.send_reply_email(lead_id, subj, body)
+                else:
+                    payload["auto_reply_error"] = "affiliate_url_not_configured"
+                async with get_connection() as conn:
+                    await conn.execute(
+                        "UPDATE leads SET status = 'qualified'::lead_status, updated_at = now() WHERE id = $1",
+                        lead_id,
+                    )
+                payload["voice_queue"] = await enqueue_voice_call(lead_id, reason="interested")
+
+            elif (
+                result.classification == ReplyClassification.OBJECTION
+                and result.confidence >= 0.85
+                and result.suggested_response
+            ):
+                reply_subject = (
+                    subject if subject and subject.lower().startswith("re:")
+                    else f"Re: {subject or 'your question'}"
                 )
-            payload["voice_queue"] = await enqueue_voice_call(lead_id, reason="interested")
+                payload["auto_reply"] = await self.send_reply_email(
+                    lead_id, reply_subject, result.suggested_response,
+                )
 
-        elif (
-            result.classification == ReplyClassification.OBJECTION
-            and result.confidence >= 0.85
-            and result.suggested_response
-        ):
-            reply_subject = subject if subject and subject.lower().startswith("re:") else f"Re: {subject or 'your question'}"
-            payload["auto_reply"] = await self.send_reply_email(
-                lead_id, reply_subject, result.suggested_response,
-            )
-
-        elif result.should_escalate_voice:
-            payload["voice_queue"] = await enqueue_voice_call(
-                lead_id, reason=result.classification.value,
-            )
+            elif result.should_escalate_voice:
+                payload["voice_queue"] = await enqueue_voice_call(
+                    lead_id, reason=result.classification.value,
+                )
+        except BrevoError as exc:
+            payload["auto_reply_error"] = str(exc)
 
         return payload
 

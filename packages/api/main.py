@@ -201,7 +201,10 @@ class ReplyWebhook(BaseModel):
 
 @app.post("/webhooks/email-reply")
 async def email_reply(req: ReplyWebhook):
-    return await app.state.outbound.handle_reply(req.lead_id, req.body, req.subject)
+    try:
+        return await app.state.outbound.handle_reply(req.lead_id, req.body, req.subject)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Reply handling failed: {exc}") from exc
 
 
 class VoiceQueueRequest(BaseModel):
@@ -300,12 +303,15 @@ async def brevo_inbound(request: Request):
     if not lead:
         return {"ok": False, "reason": "unknown_sender", "from_email": parsed["from_email"]}
 
-    data = await app.state.outbound.handle_reply(
-        lead["id"],
-        parsed.get("text") or "",
-        parsed.get("subject"),
-    )
-    return {"ok": True, **data}
+    try:
+        data = await app.state.outbound.handle_reply(
+            lead["id"],
+            parsed.get("text") or "",
+            parsed.get("subject"),
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Reply handling failed: {exc}") from exc
+    return {"ok": True, "lead_id": str(lead["id"]), **data}
 
 
 @app.post("/webhooks/affiliate")

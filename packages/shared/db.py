@@ -127,7 +127,10 @@ async def log_agent_run(
 
 async def get_lead_by_email(email: str) -> asyncpg.Record | None:
     async with get_connection() as conn:
-        return await conn.fetchrow("SELECT * FROM leads WHERE email = $1", email)
+        return await conn.fetchrow(
+            "SELECT * FROM leads WHERE lower(email) = lower($1)",
+            email.strip(),
+        )
 
 
 async def get_lead_by_id(lead_id: UUID) -> asyncpg.Record | None:
