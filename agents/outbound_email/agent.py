@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import time
 from uuid import UUID
 
@@ -42,6 +43,47 @@ Return ONLY valid JSON:
   "suggested_response": str|null,
   "should_escalate_voice": bool
 }"""
+
+
+def _normalize_reply_classification(raw: str) -> str:
+    value = raw.strip().lower().replace("-", "_").replace(" ", "_")
+    aliases = {
+        "ooo": "out_of_office",
+        "out_of_office": "out_of_office",
+        "not_now": "not_now",
+        "notnow": "not_now",
+        "interested": "interested",
+        "objection": "objection",
+        "unsubscribe": "unsubscribe",
+        "other": "other",
+    }
+    return aliases.get(value, value)
+
+
+def _parse_classified_reply(raw: str, reply_body: str) -> ClassifiedReply:
+    try:
+        data = extract_json(raw)
+    except json.JSONDecodeError:
+        lowered = reply_body.lower()
+        if any(word in lowered for word in ("unsubscribe", "remove me", "stop emailing")):
+            fallback = "unsubscribe"
+        elif any(word in lowered for word in ("interested", "send link", "free link", "yes please", "sign me up")):
+            fallback = "interested"
+        else:
+            fallback = "other"
+        return ClassifiedReply(
+            classification=ReplyClassification(fallback),
+            confidence=0.6,
+            summary="Fallback classification due to invalid LLM JSON",
+            suggested_response=None,
+            should_escalate_voice=fallback == "interested",
+        )
+
+    if isinstance(data.get("classification"), str):
+        data["classification"] = _normalize_reply_classification(data["classification"])
+    if "confidence" in data:
+        data["confidence"] = float(data["confidence"])
+    return ClassifiedReply(**data)
 
 
 class OutboundEmailAgent:
@@ -233,8 +275,7 @@ Reply:
 {reply_body}"""
 
         raw = await classify_text(prompt, REPLY_SYSTEM)
-        data = extract_json(raw)
-        result = ClassifiedReply(**data)
+        result = _parse_classified_reply(raw, reply_body)
 
         await log_interaction(
             lead_id,
@@ -279,7 +320,16 @@ Reply:
         subject: str | None = None,
     ) -> dict:
         """Classify inbound reply and auto-send trial link or objection response."""
-        result = await self.classify_reply(lead_id, reply_body)
+        try:
+            result = await self.classify_reply(lead_id, reply_body)
+        except Exception as exc:
+            return {
+                "classification": "error",
+                "summary": str(exc),
+                "auto_reply": None,
+                "auto_reply_error": str(exc),
+            }
+
         payload = result.model_dump()
         payload["auto_reply"] = None
         payload["auto_reply_error"] = None

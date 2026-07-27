@@ -310,7 +310,11 @@ async def brevo_inbound(request: Request):
             parsed.get("subject"),
         )
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Reply handling failed: {exc}") from exc
+        return {"ok": False, "reason": "handler_error", "error": str(exc), "lead_id": str(lead["id"])}
+
+    if data.get("classification") == "error":
+        return {"ok": False, "reason": "classification_failed", "lead_id": str(lead["id"]), **data}
+
     return {"ok": True, "lead_id": str(lead["id"]), **data}
 
 
