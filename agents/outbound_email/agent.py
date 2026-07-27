@@ -288,7 +288,6 @@ Reply:
         )
 
         if result.classification == ReplyClassification.UNSUBSCRIBE:
-            from packages.shared.db import get_connection
             async with get_connection() as conn:
                 await conn.execute(
                     "UPDATE leads SET do_not_contact = true, status = 'unsubscribed' WHERE id = $1",
