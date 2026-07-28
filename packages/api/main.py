@@ -143,6 +143,52 @@ async def create_lead(lead: LeadCreate):
     return {"lead_id": str(lead_id), "score": score.model_dump(), "gamification": xp}
 
 
+class DiscoverRequest(BaseModel):
+    max_leads: int = 25
+    import_leads: bool = True
+    seeds_only: bool = False
+
+
+@app.post("/leads/discover")
+async def discover_leads(req: DiscoverRequest):
+    """Find ICP leads from public Impressum/Kontakt pages and optionally import."""
+    from packages.shared.lead_finder import SEED_URLS, LeadFinder
+
+    finder = LeadFinder(max_leads=min(req.max_leads, 50))
+    discovered = await finder.discover(
+        queries=[] if req.seeds_only else None,
+        seed_urls=SEED_URLS,
+    )
+
+    imported: list[dict] = []
+    if req.import_leads:
+        for item in discovered:
+            payload = item.to_api_payload()
+            lead_id = await upsert_lead(payload)
+            score = await app.state.outbound.score_lead(lead_id)
+            await award_xp("lead_created", f"Discovered: {item.email}")
+            imported.append(
+                {
+                    "lead_id": str(lead_id),
+                    "email": item.email,
+                    "company": item.company,
+                    "score": score.score,
+                    "icp_match": score.icp_match,
+                }
+            )
+
+    return {
+        "ok": True,
+        "discovered": len(discovered),
+        "imported": len(imported),
+        "leads": imported
+        or [
+            {"email": d.email, "company": d.company, "website": d.website}
+            for d in discovered
+        ],
+    }
+
+
 class RegisterRequest(BaseModel):
     email: EmailStr
     first_name: str | None = None
