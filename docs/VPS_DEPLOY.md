@@ -193,17 +193,56 @@ Local dev is optional for code changes — **production runs entirely on VPS**.
 
 ---
 
-## Brevo Webhook (Inbound Replies)
+## Brevo Inbound Replies (Reply-Loop)
 
-In Brevo dashboard, set inbound webhook URL to:
-```
-https://n8n.amplivo.net/webhook/email-reply
+Replies must land on **`reply@reply.amplivo.net`** (Reply-To on every outbound), get parsed by Brevo, then hit Amplivo.
+
+### 1. DNS (once)
+
+For `reply.amplivo.net` at Namecheap:
+
+| Type | Host | Value | Priority |
+|------|------|-------|----------|
+| MX | `reply` | `inbound1.sendinblue.com.` | 10 |
+| MX | `reply` | `inbound2.sendinblue.com.` | 20 |
+
+(You may already have these.)
+
+### 2. Brevo dashboard
+
+1. **Transactional → Inbound / Parse** (or Domains → inbound)
+2. Domain `reply.amplivo.net` authenticated
+3. Create **Inbound webhook**:
+   - URL (prefer API direct): `https://api.amplivo.net/webhooks/brevo-inbound`
+   - Or via n8n: `https://n8n.amplivo.net/webhook/email-reply`
+   - Event: `inboundEmailProcessed`
+4. Import/activate n8n workflow `email-reply.json` if using n8n path
+
+### 3. Amplivo Settings
+
+- **From Name:** `James` (person, not "Sales Team")
+- **From Email:** verified sender on `amplivo.net`
+- **Reply-To:** `reply@reply.amplivo.net`
+
+### 4. Test
+
+```bash
+curl -X POST https://api.amplivo.net/webhooks/brevo-inbound \
+  -H "Content-Type: application/json" \
+  -d '{"from_email":"EXISTING-LEAD@example.com","text":"Yes interested, send the link"}'
 ```
 
-Or use the API directly:
-```
-https://api.amplivo.net/webhooks/brevo-inbound
-```
+Expect: `classification: interested`, `auto_reply.sent: true`.
+
+### Deliverability checklist
+
+- [ ] SPF includes Zoho + Brevo on `amplivo.net`
+- [ ] DKIM Brevo green for `amplivo.net`
+- [ ] From Name = person (`James`)
+- [ ] Reply-To = `reply@reply.amplivo.net`
+- [ ] STOP / unsubscribe line in templates
+- [ ] Test one mail via [mail-tester.com](https://www.mail-tester.com) (aim ≥8/10)
+- [ ] Brevo bounce rate < 3% before raising `DAILY_EMAIL_LIMIT`
 
 ---
 

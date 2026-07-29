@@ -8,11 +8,11 @@ SET
 FROM email_sequences AS es,
 LATERAL (VALUES
   (1, 'Kurze Frage zu {{company}}',
-   E'Hallo {{first_name}},\n\nich habe gesehen, dass {{company}} im Online-Business unterwegs ist. Viele Coaches und Creator zahlen noch fuer 3–5 separate Tools (Funnels, E-Mail, Kurse, Zahlungen).\n\nSysteme.io buendelt das in einer Plattform – der Free-Plan geht ohne Kreditkarte.\n\nFalls hilfreich, hier der kostenlose Zugang:\n{{affiliate_url}}\n\nOder antworte kurz, wenn du eine Frage hast.\n\nBeste Gruesse\n{{sender_name}}'),
+   E'Hallo {{first_name}},\n\nich habe gesehen, dass {{company}} im Online-Business unterwegs ist. Viele Coaches und Creator zahlen noch fuer 3–5 separate Tools (Funnels, E-Mail, Kurse, Zahlungen).\n\nSysteme.io buendelt das in einer Plattform – der Free-Plan geht ohne Kreditkarte.\n\nFalls hilfreich, hier der kostenlose Zugang:\n{{affiliate_url}}\n\nOder antworte kurz, wenn du eine Frage hast.\n\nBeste Gruesse\n{{sender_name}}\n\nP.S. Kein Interesse mehr? Antworte einfach mit STOP.'),
   (2, 'Re: Kurze Frage zu {{company}}',
-   E'Hallo {{first_name}},\n\nkurz nachgehakt – falls du noch mit mehreren Tools jonglierst, lohnt sich oft ein Blick auf den Free-Plan:\n{{affiliate_url}}\n\nKein Pitch-Druck. Wenn es gerade nicht passt, einfach ignorieren.\n\nBeste Gruesse\n{{sender_name}}'),
+   E'Hallo {{first_name}},\n\nkurz nachgehakt – falls du noch mit mehreren Tools jonglierst, lohnt sich oft ein Blick auf den Free-Plan:\n{{affiliate_url}}\n\nKein Pitch-Druck. Wenn es gerade nicht passt, einfach ignorieren.\n\nBeste Gruesse\n{{sender_name}}\n\nP.S. Antworte STOP zum Abmelden.'),
   (3, 'Letzte Nachricht – {{company}}',
-   E'Hallo {{first_name}},\n\nletzte Mail von mir. Wenn Stack-Vereinfachung gerade keine Prioritaet ist: alles gut.\n\nFalls doch: Free-Zugang ohne Kreditkarte hier:\n{{affiliate_url}}\n\nBeste Gruesse\n{{sender_name}}')
+   E'Hallo {{first_name}},\n\nletzte Mail von mir. Wenn Stack-Vereinfachung gerade keine Prioritaet ist: alles gut.\n\nFalls doch: Free-Zugang ohne Kreditkarte hier:\n{{affiliate_url}}\n\nBeste Gruesse\n{{sender_name}}\n\nP.S. Antworte STOP zum Abmelden.')
 ) AS v(step_order, subject_tpl, body_tpl)
 WHERE s.sequence_id = es.id
   AND es.slug = 'outbound_a'
@@ -25,9 +25,9 @@ SET
 FROM email_sequences AS es,
 LATERAL (VALUES
   (1, 'Idee fuer {{company}}: weniger Tools, mehr Fokus',
-   E'Hallo {{first_name}},\n\nviele {{industry}}-Gruender starten mit 4–5 Tools und verlieren Zeit an Setup statt an Kunden.\n\nEin praktischer Start: Free-Plan von Systeme.io (Funnels + E-Mail + Kurse, ohne Kreditkarte):\n{{affiliate_url}}\n\nWenn du willst, antworte mit deinem aktuellen Setup – ich sage dir ehrlich, ob es passt.\n\nBeste Gruesse\n{{sender_name}}'),
+   E'Hallo {{first_name}},\n\nviele {{industry}}-Gruender starten mit 4–5 Tools und verlieren Zeit an Setup statt an Kunden.\n\nEin praktischer Start: Free-Plan von Systeme.io (Funnels + E-Mail + Kurse, ohne Kreditkarte):\n{{affiliate_url}}\n\nWenn du willst, antworte mit deinem aktuellen Setup – ich sage dir ehrlich, ob es passt.\n\nBeste Gruesse\n{{sender_name}}\n\nP.S. Antworte STOP zum Abmelden.'),
   (2, 'Re: weniger Tools fuer {{company}}',
-   E'Hallo {{first_name}},\n\nnur ein kurzer Reminder zum Free-Zugang:\n{{affiliate_url}}\n\nKein Abo-Zwang. Falls uninteressant – einfach ignorieren.\n\nBeste Gruesse\n{{sender_name}}')
+   E'Hallo {{first_name}},\n\nnur ein kurzer Reminder zum Free-Zugang:\n{{affiliate_url}}\n\nKein Abo-Zwang. Falls uninteressant – einfach ignorieren.\n\nBeste Gruesse\n{{sender_name}}\n\nP.S. Antworte STOP zum Abmelden.')
 ) AS v(step_order, subject_tpl, body_tpl)
 WHERE s.sequence_id = es.id
   AND es.slug = 'nurture_b'

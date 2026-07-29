@@ -269,24 +269,25 @@ Lead data:
         country = (lead.get("country") or "DE").upper()
         language = "German" if country in {"DE", "AT", "CH"} else "English"
         url = affiliate_url or ""
+        sender = await get_runtime("outbound_from_name") or settings.outbound_from_name
         subject = subject_tpl.replace("{{first_name}}", lead.get("first_name") or "there")
         subject = subject.replace("{{company}}", lead.get("company") or "your business")
         subject = subject.replace("{{industry}}", lead.get("industry") or "online business")
         body = body_tpl.replace("{{first_name}}", lead.get("first_name") or "there")
         body = body.replace("{{company}}", lead.get("company") or "your business")
         body = body.replace("{{industry}}", lead.get("industry") or "online business")
-        body = body.replace("{{sender_name}}", settings.outbound_from_name)
+        body = body.replace("{{sender_name}}", sender)
         body = body.replace("{{affiliate_url}}", url)
 
         prompt = f"""Personalize this cold email for the lead. Write in {language}.
 Keep it concise and professional. Preserve EVERY URL exactly as written (especially {{affiliate_url}} already substituted).
-Do not invent facts about the lead. Do not remove the free-access link if present.
+Keep the STOP / unsubscribe P.S. if present. Do not invent facts about the lead. Do not remove the free-access link if present.
 Return JSON: {{"subject": str, "body": str}}
 
 Lead: {dict(lead)}
 Template subject: {subject}
 Template body: {body}
-Sender name: {settings.outbound_from_name}"""
+Sender name: {sender}"""
 
         raw = await generate_text(prompt, "You write high-converting B2B cold emails.")
         result = extract_json(raw)

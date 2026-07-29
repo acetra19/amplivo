@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     brevo_api_key: str = ""
     resend_api_key: str = ""
     outbound_from_email: str = "james@amplivo.net"
-    outbound_from_name: str = "Amplivo Sales Team"
+    outbound_from_name: str = "James"
     outbound_reply_to_email: str = "reply@reply.amplivo.net"
     daily_email_limit: int = 30
 

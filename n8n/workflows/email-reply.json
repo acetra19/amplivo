@@ -16,13 +16,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://api:8000/webhooks/email-reply",
+        "url": "http://api:8000/webhooks/brevo-inbound",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ lead_id: $json.body.lead_id, body: $json.body.reply_text, subject: $json.body.subject || null }) }}"
+        "jsonBody": "={{ JSON.stringify($json.body || $json) }}"
       },
-      "id": "handle-reply",
-      "name": "API: Handle Reply",
+      "id": "brevo-inbound",
+      "name": "API: Brevo Inbound",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [480, 300]
@@ -30,7 +30,7 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ ok: true, classification: $json.classification, auto_reply: $json.auto_reply, voice_queue: $json.voice_queue }) }}"
+        "responseBody": "={{ JSON.stringify($json) }}"
       },
       "id": "respond",
       "name": "Respond",
@@ -40,8 +40,12 @@
     }
   ],
   "connections": {
-    "Webhook: Email Reply": { "main": [[{ "node": "API: Handle Reply", "type": "main", "index": 0 }]] },
-    "API: Handle Reply": { "main": [[{ "node": "Respond", "type": "main", "index": 0 }]] }
+    "Webhook: Email Reply": {
+      "main": [[{ "node": "API: Brevo Inbound", "type": "main", "index": 0 }]]
+    },
+    "API: Brevo Inbound": {
+      "main": [[{ "node": "Respond", "type": "main", "index": 0 }]]
+    }
   },
   "settings": { "executionOrder": "v1" },
   "tags": [{ "name": "agentur" }, { "name": "lean" }]
