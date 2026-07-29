@@ -18,6 +18,7 @@ from packages.shared.db import (
     log_agent_run,
     log_interaction,
     mark_sequence_completed,
+    pause_sequences_for_lead,
     update_lead_score,
     upsert_sequence_state,
 )
@@ -154,7 +155,10 @@ Lead data:
             await mark_sequence_completed(lead_id, sequence_slug)
             return {"skipped": True, "reason": "sequence_completed"}
 
-        personalized = await self.personalize_email(lead_id, step["subject_tpl"], step["body_tpl"])
+        affiliate_url = await get_affiliate_url(lead_id)
+        personalized = await self.personalize_email(
+            lead_id, step["subject_tpl"], step["body_tpl"], affiliate_url=affiliate_url,
+        )
 
         try:
             await send_email(
@@ -226,18 +230,26 @@ Lead data:
                 break
         return {"processed": len(results), "results": results, "remaining_quota": await remaining_quota()}
 
-    async def send_reply_email(self, lead_id: UUID, subject: str, body: str) -> dict:
-        """Send a one-off reply (e.g. objection handling) via Brevo."""
+    async def send_reply_email(
+        self,
+        lead_id: UUID,
+        subject: str,
+        body: str,
+        *,
+        count_toward_quota: bool = False,
+    ) -> dict:
+        """Send a one-off reply (e.g. interested link / objection) via Brevo."""
         lead = await get_lead_by_id(lead_id)
         if not lead or lead["do_not_contact"]:
             return {"skipped": True, "reason": "do_not_contact"}
-        if not await can_send():
+        if count_toward_quota and not await can_send():
             return {"skipped": True, "reason": "daily_limit_reached"}
 
         await send_email(lead["email"], subject, body, to_name=lead["first_name"])
         await log_interaction(
             lead_id, channel="email", direction="outbound",
             subject=subject, body=body, agent_name=self.name,
+            metadata={"kind": "auto_reply", "counts_quota": count_toward_quota},
         )
         gamification = await award_xp("email_sent", f"Reply to {lead['email']}")
         return {"sent": True, "remaining_quota": await remaining_quota(), "gamification": gamification}
@@ -247,22 +259,41 @@ Lead data:
         lead_id: UUID,
         subject_tpl: str,
         body_tpl: str,
+        *,
+        affiliate_url: str | None = None,
     ) -> dict[str, str]:
         lead = await get_lead_by_id(lead_id)
         if not lead:
             raise ValueError(f"Lead {lead_id} not found")
 
-        prompt = f"""Personalize this cold email template for the lead. Keep it concise, professional, in English.
-Product context: all-in-one platform for online businesses (funnels, email, courses). Do not include affiliate links in cold emails.
-Do not invent facts. Return JSON: {{"subject": str, "body": str}}
+        country = (lead.get("country") or "DE").upper()
+        language = "German" if country in {"DE", "AT", "CH"} else "English"
+        url = affiliate_url or ""
+        subject = subject_tpl.replace("{{first_name}}", lead.get("first_name") or "there")
+        subject = subject.replace("{{company}}", lead.get("company") or "your business")
+        subject = subject.replace("{{industry}}", lead.get("industry") or "online business")
+        body = body_tpl.replace("{{first_name}}", lead.get("first_name") or "there")
+        body = body.replace("{{company}}", lead.get("company") or "your business")
+        body = body.replace("{{industry}}", lead.get("industry") or "online business")
+        body = body.replace("{{sender_name}}", settings.outbound_from_name)
+        body = body.replace("{{affiliate_url}}", url)
+
+        prompt = f"""Personalize this cold email for the lead. Write in {language}.
+Keep it concise and professional. Preserve EVERY URL exactly as written (especially {{affiliate_url}} already substituted).
+Do not invent facts about the lead. Do not remove the free-access link if present.
+Return JSON: {{"subject": str, "body": str}}
 
 Lead: {dict(lead)}
-Template subject: {subject_tpl}
-Template body: {body_tpl}
+Template subject: {subject}
+Template body: {body}
 Sender name: {settings.outbound_from_name}"""
 
         raw = await generate_text(prompt, "You write high-converting B2B cold emails.")
-        return extract_json(raw)
+        result = extract_json(raw)
+        # Guarantee affiliate URL survives LLM rewrite
+        if url and url not in result.get("body", ""):
+            result["body"] = (result.get("body") or body).rstrip() + f"\n\n{url}\n"
+        return result
 
     async def classify_reply(self, lead_id: UUID, reply_body: str) -> ClassifiedReply:
         start = time.monotonic()
@@ -333,11 +364,14 @@ Reply:
         payload["auto_reply"] = None
         payload["auto_reply_error"] = None
 
+        await pause_sequences_for_lead(lead_id)
+
         try:
             if result.classification == ReplyClassification.INTERESTED:
-                affiliate_url = await get_affiliate_url()
+                affiliate_url = await get_affiliate_url(lead_id)
                 if affiliate_url:
-                    subj, body = self._interested_reply(await get_lead_by_id(lead_id), affiliate_url)
+                    lead = await get_lead_by_id(lead_id)
+                    subj, body = self._interested_reply(lead, affiliate_url)
                     payload["auto_reply"] = await self.send_reply_email(lead_id, subj, body)
                 else:
                     payload["auto_reply_error"] = "affiliate_url_not_configured"
@@ -373,11 +407,30 @@ Reply:
     def _interested_reply(self, lead: dict | None, affiliate_url: str) -> tuple[str, str]:
         name = (lead or {}).get("first_name") or "there"
         sender = settings.outbound_from_name
+        country = ((lead or {}).get("country") or "DE").upper()
+        if country in {"DE", "AT", "CH"}:
+            body = (
+                f"Hallo {name},\n\n"
+                "super, dass du Interesse hast.\n\n"
+                f"Hier ist dein kostenloser Zugang (ohne Kreditkarte):\n{affiliate_url}\n\n"
+                "Naechste Schritte:\n"
+                "1) Account anlegen\n"
+                "2) Ein Funnel-Template waehlen\n"
+                "3) Erste E-Mail / Angebot verbinden\n\n"
+                "Wenn du haengst, antworte einfach auf diese Mail.\n\n"
+                f"Beste Gruesse\n{sender}"
+            )
+            return "Dein kostenloser Systeme.io Zugang", body
+
         body = (
             f"Hi {name},\n\n"
             "Great to hear you are interested.\n\n"
             f"Start free here (no credit card required):\n{affiliate_url}\n\n"
-            "You can set up funnels, email, and your first offer in one place.\n\n"
+            "Next steps:\n"
+            "1) Create your account\n"
+            "2) Pick a funnel template\n"
+            "3) Connect your first email / offer\n\n"
+            "Reply if you get stuck — happy to help.\n\n"
             f"Best,\n{sender}"
         )
         return "Your free Systeme.io account link", body

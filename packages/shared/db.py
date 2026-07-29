@@ -188,6 +188,17 @@ async def mark_sequence_completed(lead_id: UUID, sequence_slug: str) -> None:
         )
 
 
+async def pause_sequences_for_lead(lead_id: UUID) -> None:
+    """Stop further cold/follow-up sends after a reply."""
+    async with get_connection() as conn:
+        await conn.execute(
+            """UPDATE lead_sequence_state
+               SET paused = true, next_send_at = NULL
+               WHERE lead_id = $1 AND completed = false""",
+            lead_id,
+        )
+
+
 async def get_due_followups(limit: int) -> list[asyncpg.Record]:
     async with get_connection() as conn:
         return await conn.fetch(

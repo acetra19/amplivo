@@ -58,11 +58,17 @@
       chatCard.hidden = false;
 
       if (data.score != null) {
-        scoreBadge.textContent = "Score: " + data.score;
+        scoreBadge.textContent = "Match: " + data.score + "/100";
       }
 
       appendMessage("bot", data.welcome_message);
       history.push({ role: "assistant", content: data.welcome_message });
+
+      if (affiliateUrl) {
+        trialLink.href = affiliateUrl;
+        trialLink.textContent = "Start free Systeme.io account";
+        trialLink.hidden = false;
+      }
     } catch (err) {
       registerError.textContent = err.message;
       registerError.hidden = false;
@@ -94,11 +100,12 @@
       history.push({ role: "assistant", content: data.reply });
 
       if (data.score != null) {
-        scoreBadge.textContent = "Score: " + data.score;
+        scoreBadge.textContent = "Match: " + data.score + "/100";
       }
 
       if (data.ready_for_trial && (data.affiliate_url || affiliateUrl)) {
         trialLink.href = data.affiliate_url || affiliateUrl || "#";
+        trialLink.textContent = "Start free Systeme.io account";
         trialLink.hidden = false;
       }
     } catch (err) {

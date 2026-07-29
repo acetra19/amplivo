@@ -18,6 +18,7 @@ from agents.qualifier_chat.agent import QualifierChatAgent
 from packages.shared.config import settings
 from packages.shared.db import get_connection, get_lead_by_email, get_lead_by_id, upsert_lead
 from packages.api.settings_routes import router as settings_router
+from packages.shared.affiliate import get_affiliate_url
 from packages.shared.brevo_inbound import parse_brevo_inbound
 from packages.shared.settings_store import get_runtime
 from packages.shared.gamification import award_xp, get_dashboard_state
@@ -28,8 +29,8 @@ from packages.shared.stats import get_pipeline_stats
 LANDING_DIR = Path(__file__).resolve().parents[2] / "landing"
 DASHBOARD_DIR = Path(__file__).resolve().parents[2] / "dashboard"
 WELCOME_MESSAGE = (
-    "Hi! I am your sales assistant. I can answer questions about Systeme.io, "
-    "pricing, and whether it fits your online business. What would you like to know?"
+    "Hi! I am your Amplivo assistant. I can answer questions about Systeme.io, "
+    "the free plan, and whether it fits your online business. What would you like to know?"
 )
 
 
@@ -201,19 +202,7 @@ class RegisterRequest(BaseModel):
 async def register_visitor(req: RegisterRequest):
     lead_id = await upsert_lead(req.model_dump())
     score_result = await app.state.outbound.score_lead(lead_id)
-    affiliate_url = await get_runtime("affiliate_tracking_base") or None
-    product_slug = await get_runtime("affiliate_product_slug") or settings.affiliate_product_slug
-    if not affiliate_url:
-        async with get_connection() as conn:
-            row = await conn.fetchrow(
-                """SELECT affiliate_url FROM affiliate_products
-                   WHERE slug = $1 AND is_active = true""",
-                product_slug,
-            )
-            if row:
-                affiliate_url = row["affiliate_url"]
-                if "YOUR-AFFILIATE" in affiliate_url:
-                    affiliate_url = None
+    affiliate_url = await get_affiliate_url(lead_id)
 
     return {
         "lead_id": str(lead_id),

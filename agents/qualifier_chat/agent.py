@@ -5,18 +5,24 @@ from __future__ import annotations
 import time
 from uuid import UUID
 
+from packages.shared.affiliate import get_affiliate_url
 from packages.shared.config import settings
-from packages.shared.settings_store import get_runtime
-from packages.shared.db import get_connection
+from packages.shared.db import (
+    get_lead_by_id,
+    log_agent_run,
+    log_interaction,
+    update_lead_score,
+)
 from packages.shared.gamification import award_xp
 from packages.shared.knowledge import format_knowledge_context, search_knowledge
 from packages.shared.llm import extract_json, generate_text
+from packages.shared.settings_store import get_runtime
 
 
-QUALIFIER_SYSTEM = """You are a B2B sales qualification chatbot for an affiliate product demo.
+QUALIFIER_SYSTEM = """You are a B2B sales qualification chatbot for an affiliate product demo (Systeme.io).
 Goals: understand pain points, budget signals, timeline, decision authority (BANT-lite).
 Be helpful, concise, in English. Never be pushy.
-If the visitor shows strong fit, suggest starting a free trial.
+If the visitor shows strong fit, suggest starting a free plan (no credit card).
 
 After each turn, append a hidden JSON block on a new line:
 ---SCORE---
@@ -41,7 +47,7 @@ class QualifierChatAgent:
 
         product = await get_runtime("affiliate_product_slug") or settings.affiliate_product_slug
         threshold = int(await get_runtime("lead_score_threshold") or settings.lead_score_threshold)
-        affiliate_url = await get_runtime("affiliate_tracking_base") or None
+        affiliate_url = await get_affiliate_url(lead_id)
 
         prompt = f"""Product: {product}
 Lead: {lead['email']}, {lead['company']}, {lead['job_title']}
@@ -77,6 +83,7 @@ Visitor message: {message}"""
                 lead_id, score_data["score"], score_data.get("icp_match", False), "qualified",
             )
             await award_xp("lead_qualified", f"Chat qualified: {lead['email']}")
+            score_data["ready_for_trial"] = True
 
         await log_agent_run(
             self.name,

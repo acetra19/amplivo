@@ -1,4 +1,5 @@
--- Systeme.io / solopreneur email sequence templates (safe to re-run)
+-- Systeme.io / solopreneur email sequences (DE primary, soft link early)
+-- Safe to re-run. Placeholders: {{first_name}} {{company}} {{industry}} {{sender_name}} {{affiliate_url}}
 
 UPDATE email_sequence_steps AS s
 SET
@@ -6,12 +7,12 @@ SET
   body_tpl = v.body_tpl
 FROM email_sequences AS es,
 LATERAL (VALUES
-  (1, 'Quick question about {{company}}''s online setup',
-   E'Hi {{first_name}},\n\nI noticed {{company}} is active in {{industry}}. Many coaches and online entrepreneurs still pay for 3–5 separate tools (funnels, email, courses, payments).\n\nWe help founders consolidate that stack with an all-in-one platform — most start on a free plan with no credit card.\n\nWould it help if I sent you a free account link?\n\nBest,\n{{sender_name}}'),
-  (2, 'Re: Quick question about {{company}}',
-   E'Hi {{first_name}},\n\nJust following up — happy to share how similar online businesses cut tool costs and launch faster with one dashboard for funnels, email, and sales.\n\nReply "interested" and I will send the free signup link.\n\nBest,\n{{sender_name}}'),
-  (3, 'Last note – {{company}}',
-   E'Hi {{first_name}},\n\nLast email from me. If simplifying your online business stack is not a priority right now, no worries.\n\nIf it is, reply "interested" and I will send free access.\n\nBest,\n{{sender_name}}')
+  (1, 'Kurze Frage zu {{company}}',
+   E'Hallo {{first_name}},\n\nich habe gesehen, dass {{company}} im Online-Business unterwegs ist. Viele Coaches und Creator zahlen noch fuer 3–5 separate Tools (Funnels, E-Mail, Kurse, Zahlungen).\n\nSysteme.io buendelt das in einer Plattform – der Free-Plan geht ohne Kreditkarte.\n\nFalls hilfreich, hier der kostenlose Zugang:\n{{affiliate_url}}\n\nOder antworte kurz, wenn du eine Frage hast.\n\nBeste Gruesse\n{{sender_name}}'),
+  (2, 'Re: Kurze Frage zu {{company}}',
+   E'Hallo {{first_name}},\n\nkurz nachgehakt – falls du noch mit mehreren Tools jonglierst, lohnt sich oft ein Blick auf den Free-Plan:\n{{affiliate_url}}\n\nKein Pitch-Druck. Wenn es gerade nicht passt, einfach ignorieren.\n\nBeste Gruesse\n{{sender_name}}'),
+  (3, 'Letzte Nachricht – {{company}}',
+   E'Hallo {{first_name}},\n\nletzte Mail von mir. Wenn Stack-Vereinfachung gerade keine Prioritaet ist: alles gut.\n\nFalls doch: Free-Zugang ohne Kreditkarte hier:\n{{affiliate_url}}\n\nBeste Gruesse\n{{sender_name}}')
 ) AS v(step_order, subject_tpl, body_tpl)
 WHERE s.sequence_id = es.id
   AND es.slug = 'outbound_a'
@@ -23,10 +24,10 @@ SET
   body_tpl = v.body_tpl
 FROM email_sequences AS es,
 LATERAL (VALUES
-  (1, 'Free guide: launching {{industry}} online',
-   E'Hi {{first_name}},\n\nI put together a short guide on how businesses like {{company}} launch funnels and email automation without a big tech stack.\n\nNo pitch — just practical steps. Want me to send it over?\n\nBest,\n{{sender_name}}'),
-  (2, 'Re: online launch guide',
-   E'Hi {{first_name}},\n\nJust checking in — happy to share the guide if useful.\n\nMany solopreneurs use an all-in-one platform to replace multiple subscriptions. I can point you to a free plan if you want to explore.\n\nBest,\n{{sender_name}}')
+  (1, 'Idee fuer {{company}}: weniger Tools, mehr Fokus',
+   E'Hallo {{first_name}},\n\nviele {{industry}}-Gruender starten mit 4–5 Tools und verlieren Zeit an Setup statt an Kunden.\n\nEin praktischer Start: Free-Plan von Systeme.io (Funnels + E-Mail + Kurse, ohne Kreditkarte):\n{{affiliate_url}}\n\nWenn du willst, antworte mit deinem aktuellen Setup – ich sage dir ehrlich, ob es passt.\n\nBeste Gruesse\n{{sender_name}}'),
+  (2, 'Re: weniger Tools fuer {{company}}',
+   E'Hallo {{first_name}},\n\nnur ein kurzer Reminder zum Free-Zugang:\n{{affiliate_url}}\n\nKein Abo-Zwang. Falls uninteressant – einfach ignorieren.\n\nBeste Gruesse\n{{sender_name}}')
 ) AS v(step_order, subject_tpl, body_tpl)
 WHERE s.sequence_id = es.id
   AND es.slug = 'nurture_b'

@@ -28,7 +28,7 @@ SKIP_LOCAL_PARTS = {
     "abuse", "webmaster", "hostmaster", "privacy", "dsgvo",
 }
 # Keep datenschutz out of outreach targets (legal contact, not sales ICP)
-SKIP_LOCAL_EXACT = {"datenschutz", "dpo", "legal", "privacy"}
+SKIP_LOCAL_EXACT = {"datenschutz", "dpo", "legal", "privacy", "support", "billing"}
 
 SKIP_DOMAINS = {
     "example.com", "sentry.io", "wixpress.com", "wordpress.com",

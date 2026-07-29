@@ -19,7 +19,8 @@ async def get_today_sent_count() -> int:
         return await conn.fetchval(
             """SELECT COUNT(*) FROM interactions
                WHERE channel = 'email' AND direction = 'outbound'
-               AND created_at::date = $1""",
+               AND created_at::date = $1
+               AND COALESCE(metadata->>'kind', '') <> 'auto_reply'""",
             date.today(),
         ) or 0
 
