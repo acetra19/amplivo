@@ -75,6 +75,12 @@ SEED_URLS = [
     "https://topjobcreator.de/impressum",
     "https://www.online-creators.de/impressum/",
     "https://connectcoach.de/impressum",
+    "https://marleenschmitz.de/impressum/",
+    "https://poweroncoaching.de/impressum/",
+    "https://www.femgo.de/impressum",
+    "https://www.cmm-coaching.de/impressum",
+    "https://pure-happy.de/impressum/",
+    "https://funnelmate.io/impressum",
 ]
 
 USER_AGENT = (
