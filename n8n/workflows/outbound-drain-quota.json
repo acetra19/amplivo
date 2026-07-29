@@ -1,0 +1,66 @@
+{
+  "name": "Outbound Drain Quota (09:00 + 14:00)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 9,14 * * *" }]
+        }
+      },
+      "id": "cron-drain",
+      "name": "Cron: 09:00 and 14:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/outbound/drain-quota",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ max_new: 25 }) }}"
+      },
+      "id": "drain-quota",
+      "name": "API: Drain Quota",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://api:8000/outbound/stats"
+      },
+      "id": "outbound-stats",
+      "name": "API: Outbound Stats",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://api:8000/pipeline/stats"
+      },
+      "id": "pipeline-stats",
+      "name": "API: Pipeline Stats",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [960, 300]
+    }
+  ],
+  "connections": {
+    "Cron: 09:00 and 14:00": {
+      "main": [[{ "node": "API: Drain Quota", "type": "main", "index": 0 }]]
+    },
+    "API: Drain Quota": {
+      "main": [[{ "node": "API: Outbound Stats", "type": "main", "index": 0 }]]
+    },
+    "API: Outbound Stats": {
+      "main": [[{ "node": "API: Pipeline Stats", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "agentur" }, { "name": "always-on" }]
+}

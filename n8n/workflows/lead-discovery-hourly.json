@@ -1,0 +1,52 @@
+{
+  "name": "Lead Discovery (Hourly 08-20)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 8-20 * * *" }]
+        }
+      },
+      "id": "cron-hourly",
+      "name": "Cron: Hourly 08-20",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/leads/discover",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ max_leads: 12, import_leads: true, seeds_only: false }) }}"
+      },
+      "id": "discover-leads",
+      "name": "API: Discover Leads",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://api:8000/pipeline/stats"
+      },
+      "id": "pipeline-stats",
+      "name": "API: Pipeline Stats",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 300]
+    }
+  ],
+  "connections": {
+    "Cron: Hourly 08-20": {
+      "main": [[{ "node": "API: Discover Leads", "type": "main", "index": 0 }]]
+    },
+    "API: Discover Leads": {
+      "main": [[{ "node": "API: Pipeline Stats", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "agentur" }, { "name": "always-on" }]
+}

@@ -299,6 +299,18 @@ async def outbound_process_queue():
     return await app.state.outbound.process_followup_queue()
 
 
+class DrainQuotaRequest(BaseModel):
+    max_new: int | None = None
+
+
+@app.post("/outbound/drain-quota")
+async def outbound_drain_quota(req: DrainQuotaRequest = DrainQuotaRequest()):
+    """Process follow-ups, then send to top ready leads until daily limit."""
+    from agents.outbound_email.drain import drain_outbound_quota
+
+    return await drain_outbound_quota(app.state.outbound, max_new=req.max_new)
+
+
 @app.get("/outbound/stats")
 async def outbound_stats():
     from packages.shared.rate_limit import get_today_sent_count, remaining_quota, _daily_limit

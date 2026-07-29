@@ -110,7 +110,16 @@ With `docker-compose.prod.yml`, Postgres (5432) and Redis (6379) are **not** pub
 3. **Settings → Import from File** — import all JSON from `n8n/workflows/`:
    - `new-lead.json`, `email-reply.json`, `email-followup-daily.json`
    - `trial-started.json`, `daily-ops-report.json`, `landing-register.json`
-4. Activate workflows
+   - **Always-on:** `lead-discovery-hourly.json`, `outbound-drain-quota.json`
+4. Activate workflows (especially the always-on ones)
+
+Always-on schedule:
+| Workflow | When | What |
+|----------|------|------|
+| Lead Discovery | hourly 08–20 | `POST /leads/discover` |
+| Drain Quota | 09:00 + 14:00 | follow-ups + send top leads until daily limit |
+
+If `outbound-drain-quota` is active, you can deactivate `email-followup-daily` (drain already processes the follow-up queue).
 
 Test webhook:
 ```bash

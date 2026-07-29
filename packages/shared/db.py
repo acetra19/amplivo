@@ -199,6 +199,24 @@ async def pause_sequences_for_lead(lead_id: UUID) -> None:
         )
 
 
+async def get_outreach_candidates(limit: int = 20) -> list[asyncpg.Record]:
+    """Leads ready for first cold touch, highest score first."""
+    async with get_connection() as conn:
+        return await conn.fetch(
+            """SELECT l.*
+               FROM leads l
+               WHERE l.do_not_contact = false
+                 AND l.status IN ('new', 'enriched')
+                 AND NOT EXISTS (
+                   SELECT 1 FROM lead_sequence_state s
+                   WHERE s.lead_id = l.id AND s.completed = false
+                 )
+               ORDER BY l.score DESC NULLS LAST, l.created_at ASC
+               LIMIT $1""",
+            limit,
+        )
+
+
 async def get_due_followups(limit: int) -> list[asyncpg.Record]:
     async with get_connection() as conn:
         return await conn.fetch(
