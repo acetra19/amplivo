@@ -66,7 +66,7 @@ def _parse_classified_reply(raw: str, reply_body: str) -> ClassifiedReply:
         data = extract_json(raw)
     except json.JSONDecodeError:
         lowered = reply_body.lower()
-        if any(word in lowered for word in ("unsubscribe", "remove me", "stop emailing")):
+        if any(word in lowered for word in ("unsubscribe", "remove me", "stop emailing", " stop", "stop.", "abmelden")):
             fallback = "unsubscribe"
         elif any(word in lowered for word in ("interested", "send link", "free link", "yes please", "sign me up")):
             fallback = "interested"
