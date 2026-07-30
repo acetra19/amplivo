@@ -10,7 +10,14 @@ if [ ! -f .env ]; then
 fi
 
 get_env() {
-  grep -E "^${1}=" .env | head -1 | cut -d= -f2- | tr -d '\r' \
+  # Never fail under set -euo pipefail when a key is missing.
+  local line
+  line="$(grep -E "^${1}=" .env 2>/dev/null | head -1 || true)"
+  if [ -z "$line" ]; then
+    printf ''
+    return 0
+  fi
+  printf '%s' "$line" | cut -d= -f2- | tr -d '\r' \
     | sed 's/^[[:space:]]*//;s/[[:space:]]*$//;s/^"\(.*\)"$/\1/'
 }
 
@@ -39,31 +46,31 @@ fi
 
 LANDING_DOMAIN="$(get_env LANDING_DOMAIN)"
 DASHBOARD_DOMAIN="$(get_env DASHBOARD_DOMAIN)"
+export LANDING_DOMAIN DASHBOARD_DOMAIN
 
-echo "==> Pulling latest images..."
-docker compose -f docker-compose.yml -f docker-compose.prod.yml pull
-
-echo "==> Building and starting stack..."
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+echo "==> Restarting API with mounted code..."
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build --force-recreate api
 
 echo "==> Waiting for API..."
+ready=0
 for i in $(seq 1 30); do
   if docker compose exec -T api python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')" 2>/dev/null; then
     echo "API is ready."
+    ready=1
     break
   fi
   sleep 2
 done
+if [ "$ready" -ne 1 ]; then
+  echo "ERROR: API health check failed. Check: docker compose logs api --tail 80"
+  exit 1
+fi
 
 echo ""
 echo "Deployment complete."
-echo "  API:     https://${API_DOMAIN}"
-echo "  Landing: https://${LANDING_DOMAIN:-$API_DOMAIN}"
+echo "  API:       https://${API_DOMAIN}"
+echo "  Landing:   https://${LANDING_DOMAIN:-$API_DOMAIN}"
 echo "  Dashboard: https://${DASHBOARD_DOMAIN:-$API_DOMAIN/dashboard}"
 echo "  n8n:       https://${N8N_HOST}"
-echo ""
-echo "Next steps:"
-echo "  1. Point DNS A-records for ${API_DOMAIN}, ${LANDING_DOMAIN:-}, ${DASHBOARD_DOMAIN:-dash}, ${N8N_HOST} to VPS IP"
-echo "  2. Open https://${N8N_HOST} and import workflows from n8n/workflows/"
-echo "  3. Test: curl https://${API_DOMAIN}/health"
-echo "  4. Import leads: python scripts/import-leads.py data/leads-example.csv --webhook https://${N8N_HOST}/webhook/new-lead"
+echo "  Ops:       https://${DASHBOARD_DOMAIN:-dash.amplivo.net}/dashboard/ops"
+echo "  Plumbing:  https://${API_DOMAIN}/ops/plumbing"
