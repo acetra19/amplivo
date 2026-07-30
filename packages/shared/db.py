@@ -208,8 +208,13 @@ async def get_outreach_candidates(limit: int = 20) -> list[asyncpg.Record]:
                WHERE l.do_not_contact = false
                  AND l.status IN ('new', 'enriched')
                  AND NOT EXISTS (
-                   SELECT 1 FROM lead_sequence_state s
-                   WHERE s.lead_id = l.id AND s.completed = false
+                   SELECT 1 FROM lead_sequence_state s WHERE s.lead_id = l.id
+                 )
+                 AND NOT EXISTS (
+                   SELECT 1 FROM interactions i
+                   WHERE i.lead_id = l.id
+                     AND i.channel = 'email'
+                     AND i.direction = 'outbound'
                  )
                ORDER BY l.score DESC NULLS LAST, l.created_at ASC
                LIMIT $1""",

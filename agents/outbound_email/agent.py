@@ -118,7 +118,16 @@ Lead data:
         data = extract_json(raw)
         result = LeadScoreResult(**data)
 
-        status = "enriched" if result.icp_match else "new"
+        # Never downgrade pipeline status on re-score (discover re-imports contacts)
+        current = lead.get("status")
+        protected = {
+            "contacted", "replied", "qualified", "trial_started",
+            "converted", "lost", "unsubscribed",
+        }
+        if current in protected:
+            status = None
+        else:
+            status = "enriched" if result.icp_match else "new"
         await update_lead_score(lead_id, result.score, result.icp_match, status)
 
         await log_agent_run(
