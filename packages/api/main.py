@@ -24,6 +24,8 @@ from packages.shared.settings_store import get_runtime
 from packages.shared.gamification import award_xp, get_dashboard_state
 from packages.shared.models import LeadCreate
 from packages.shared.queue import dequeue_voice_call, enqueue_voice_call, ping_redis, voice_queue_length
+from packages.shared.money_plumbing import get_money_plumbing
+from packages.shared.ops_insights import get_ops_insights
 from packages.shared.stats import get_pipeline_stats
 
 LANDING_DIR = Path(__file__).resolve().parents[2] / "landing"
@@ -115,9 +117,29 @@ async def dashboard_settings_page():
     raise HTTPException(status_code=404, detail="Settings page not found")
 
 
+@app.get("/dashboard/ops")
+async def dashboard_ops_page():
+    page = DASHBOARD_DIR / "ops.html"
+    if page.is_file():
+        return FileResponse(page)
+    raise HTTPException(status_code=404, detail="Ops dashboard not found")
+
+
 @app.get("/dashboard/state")
 async def dashboard_state():
     return await get_dashboard_state()
+
+
+@app.get("/ops/insights")
+async def ops_insights():
+    """Machine-readable ops stats + improvement recommendations."""
+    return await get_ops_insights()
+
+
+@app.get("/ops/plumbing")
+async def ops_plumbing():
+    """Phase-0 money plumbing: affiliate link, attribution, postback readiness."""
+    return await get_money_plumbing()
 
 
 @app.get("/")
@@ -269,7 +291,8 @@ async def voice_queue_pop():
 class AffiliatePostback(BaseModel):
     email: EmailStr | None = None
     lead_id: UUID | None = None
-    event_type: str
+    utm_content: UUID | None = None  # alias for lead_id from tracked links
+    event_type: str = "signup"
     affiliate_tx_id: str | None = None
     commission_amount: float | None = None
 
@@ -377,8 +400,9 @@ async def affiliate_postback(
         raise HTTPException(status_code=401, detail="Invalid postback secret")
 
     lead = None
-    if payload.lead_id:
-        lead = await get_lead_by_id(payload.lead_id)
+    lead_key = payload.lead_id or payload.utm_content
+    if lead_key:
+        lead = await get_lead_by_id(lead_key)
     elif payload.email:
         lead = await get_lead_by_email(payload.email)
 
@@ -393,6 +417,8 @@ async def affiliate_postback(
         product = await conn.fetchrow(
             "SELECT id FROM affiliate_products WHERE slug = $1", product_slug,
         )
+        if not product:
+            raise HTTPException(status_code=500, detail=f"Product not found: {product_slug}")
         await conn.execute(
             """INSERT INTO conversions (lead_id, product_id, affiliate_tx_id, event_type, commission_amount)
                VALUES ($1, $2, $3, $4, $5)""",

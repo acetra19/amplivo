@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ops Insights – Amplivo</title>
+  <link rel="stylesheet" href="/dashboard/assets/style.css">
+  <link rel="stylesheet" href="/dashboard/assets/ops.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-icon">⚡</span>
+        <div>
+          <strong>Amplivo</strong>
+          <small>Ops Insights</small>
+        </div>
+      </div>
+      <nav>
+        <a href="/dashboard">Command Center</a>
+        <a href="/dashboard/ops" class="nav-active">Ops Insights</a>
+        <a href="/dashboard/settings">Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="/" class="link-muted">← Landing Page</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1>Ops Insights</h1>
+          <p class="subtitle">Live funnel, deliverability signals, and improvement levers</p>
+        </div>
+        <div class="btn-row">
+          <button id="copy-json-btn" class="btn btn-secondary" type="button">Copy JSON</button>
+          <button id="refresh-btn" class="btn" type="button">Refresh</button>
+        </div>
+      </header>
+
+      <section class="panel" id="plumbing">
+        <h2>Phase 0 · Money Plumbing <span class="badge-count" id="plumb-score"></span></h2>
+        <p class="group-desc" id="plumb-note"></p>
+        <ul id="plumb-checks" class="mini-list"></ul>
+        <p class="group-desc" style="margin-top:0.75rem">Sample tracked URL</p>
+        <pre id="plumb-url" class="export-preview">–</pre>
+      </section>
+
+      <section class="stats-grid" id="kpi-grid">
+        <article class="stat-card"><span class="stat-label">Sent Today</span><strong id="k-sent">–</strong><small id="k-quota" class="stat-sub">–</small></article>
+        <article class="stat-card"><span class="stat-label">Reply Rate 7d</span><strong id="k-reply">–</strong><small id="k-reply-n" class="stat-sub">–</small></article>
+        <article class="stat-card"><span class="stat-label">ICP Match</span><strong id="k-icp">–</strong><small id="k-ready" class="stat-sub">–</small></article>
+        <article class="stat-card"><span class="stat-label">Interested</span><strong id="k-int">–</strong><small id="k-conv" class="stat-sub">–</small></article>
+        <article class="stat-card accent"><span class="stat-label">Commission</span><strong id="k-rev">–</strong><small class="stat-sub">tracked</small></article>
+        <article class="stat-card"><span class="stat-label">Seq Overdue</span><strong id="k-overdue">–</strong><small id="k-seq" class="stat-sub">–</small></article>
+      </section>
+
+      <section class="panel" id="recommendations">
+        <h2>Improvement Levers <span class="badge-count" id="rec-count"></span></h2>
+        <div id="rec-list" class="rec-list"></div>
+      </section>
+
+      <div class="two-col">
+        <section class="panel">
+          <h2>Funnel</h2>
+          <div id="funnel-bars" class="funnel-bars"></div>
+        </section>
+        <section class="panel">
+          <h2>14-Day Trend</h2>
+          <div id="trend-chart" class="trend-chart" aria-label="Email trend chart"></div>
+          <div class="legend">
+            <span><i class="swatch sent"></i> Sent</span>
+            <span><i class="swatch reply"></i> Replies</span>
+          </div>
+        </section>
+      </div>
+
+      <div class="two-col">
+        <section class="panel">
+          <h2>Lead Quality</h2>
+          <div class="quality-grid" id="quality-grid"></div>
+          <h3 class="sub-heading">Top industries</h3>
+          <ul id="industry-list" class="mini-list"></ul>
+          <h3 class="sub-heading">Sources</h3>
+          <ul id="source-list" class="mini-list"></ul>
+        </section>
+        <section class="panel">
+          <h2>Reply Sentiment (30d)</h2>
+          <div id="sentiment-bars" class="funnel-bars"></div>
+          <h3 class="sub-heading">Recent replies</h3>
+          <ul id="reply-feed" class="feed-list compact"></ul>
+        </section>
+      </div>
+
+      <section class="panel">
+        <h2>Machine-Readable Snapshot</h2>
+        <p class="group-desc">GET <code>/ops/insights</code> — same JSON the UI uses for improvements.</p>
+        <pre id="json-preview" class="export-preview">Loading…</pre>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="/dashboard/assets/ops.js"></script>
+</body>
+</html>
