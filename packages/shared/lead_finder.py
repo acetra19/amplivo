@@ -48,10 +48,21 @@ DEFAULT_QUERIES = (
     "Funnel Coach Online Business Impressum",
     "Solopreneur Coach Deutschland Kontakt E-Mail",
     "Course Creator Coach DACH Impressum",
-    "Business Coaching Selbständig Impressum info@",
+    "Business Coaching Selbständig Impressum",
     "Online Business Mentor Deutschland Impressum",
     "Life Business Coach Impressum site:.de",
+    "Online Kurs erstellen Coach Impressum",
+    "Mitgliedschaftsseite Coach Impressum site:.de",
+    "High Ticket Coach Impressum Kontakt",
+    "Mindset Coach Online Business Impressum",
+    "Female Business Coach Deutschland Impressum",
+    "LinkedIn Coach Deutschland Impressum E-Mail",
 )
+
+GENERIC_LOCAL = {
+    "info", "contact", "kontakt", "hello", "hallo", "office", "mail",
+    "team", "service", "anfrage", "beratung",
+}
 
 # Bootstrap URLs (public Impressum/Kontakt) for reliable first runs
 SEED_URLS = [
@@ -80,7 +91,28 @@ SEED_URLS = [
     "https://www.femgo.de/impressum",
     "https://www.cmm-coaching.de/impressum",
     "https://pure-happy.de/impressum/",
-    "https://funnelmate.io/impressum",
+    # Fresh DACH coach / creator seeds (rotate when exhausted)
+    "https://www.sandra-dirks.de/impressum/",
+    "https://www.annacrey.com/impressum/",
+    "https://www.markus-eddy.de/impressum/",
+    "https://www.stephan-heinrich.com/impressum/",
+    "https://www.veit-lindau.de/impressum/",
+    "https://www.susanneernst.de/impressum/",
+    "https://www.karin-kuschik.de/impressum/",
+    "https://www.anja-foerster.de/impressum/",
+    "https://www.boris-grundl.com/impressum/",
+    "https://www.mirjam-munsch.de/impressum/",
+    "https://www.christian-baur.com/impressum/",
+    "https://www.onlinebusinesshelden.de/impressum/",
+    "https://www.kursmanufaktur.com/impressum/",
+    "https://www.coachingspace.de/impressum/",
+    "https://www.selfmade-business.de/impressum/",
+    "https://www.tino-nitzsche.de/impressum/",
+    "https://www.lisa-marie-navarro.de/impressum/",
+    "https://www.johannes-falkenstein.de/impressum/",
+    "https://www.daniela-samson.de/impressum/",
+    "https://www.nicole-jager.de/impressum/",
+    "https://www.alexandra-adler.de/impressum/",
 ]
 
 USER_AGENT = (
@@ -110,12 +142,23 @@ class DiscoveredLead:
 
 
 def _normalize_email(raw: str) -> str | None:
-    email = raw.strip().lower().rstrip(".")
+    email = raw.strip().lower().rstrip(".,;:)>")
     if not email or "@" not in email:
         return None
     local, _, domain = email.partition("@")
     if not local or not domain or "." not in domain:
         return None
+    # Strip trailing junk glued by HTML (e.g. .dewebsite)
+    domain = re.split(r"[^a-z0-9.\-]", domain)[0]
+    for tld in (".com", ".net", ".org", ".io", ".de", ".at", ".ch", ".eu", ".co"):
+        idx = domain.rfind(tld)
+        if idx > 0:
+            domain = domain[: idx + len(tld)]
+            break
+    labels = domain.split(".")
+    if len(labels) < 2:
+        return None
+    email = f"{local}@{domain}"
     if domain in SKIP_DOMAINS:
         return None
     if local in SKIP_LOCAL_EXACT:
@@ -129,7 +172,19 @@ def _normalize_email(raw: str) -> str | None:
         return None
     if email.endswith((".png", ".jpg", ".gif", ".svg", ".webp", ".css", ".js")):
         return None
+    tld = labels[-1]
+    if len(tld) < 2 or len(tld) > 6 or not tld.isalpha():
+        return None
     return email
+
+
+def _email_priority(email: str) -> int:
+    local = email.split("@", 1)[0]
+    if local in GENERIC_LOCAL:
+        return 2
+    if re.match(r"^[a-z]+\.[a-z]+$", local) or len(local) >= 3:
+        return 0
+    return 1
 
 
 def extract_emails(text: str) -> list[str]:
@@ -182,31 +237,43 @@ class LeadFinder:
         self,
         queries: list[str] | None = None,
         seed_urls: list[str] | None = None,
+        exclude_emails: set[str] | None = None,
+        prefer_search: bool = True,
     ) -> list[DiscoveredLead]:
         queries = queries or list(DEFAULT_QUERIES)
         leads: list[DiscoveredLead] = []
+        excluded = {e.lower() for e in (exclude_emails or set())}
+        self._seen_emails |= excluded
 
         async with httpx.AsyncClient(
             timeout=self.timeout,
             follow_redirects=True,
             headers={"User-Agent": USER_AGENT, "Accept": "text/html"},
         ) as client:
-            urls: list[str] = list(seed_urls or [])
+            search_urls: list[str] = []
             for query in queries:
                 if len(leads) >= self.max_leads:
                     break
-                urls.extend(await self._search_duckduckgo(client, query))
+                search_urls.extend(await self._search_duckduckgo(client, query))
 
-            # Prefer impressum/kontakt pages first
+            seed_list = list(seed_urls or [])
+            # Search first so exhausted seed lists do not fill the quota with dupes
+            urls = (search_urls + seed_list) if prefer_search else (seed_list + search_urls)
+
             ordered = sorted(
                 dict.fromkeys(urls),
-                key=lambda u: (0 if any(p in u.lower() for p in ("impressum", "kontakt", "contact")) else 1, u),
+                key=lambda u: (
+                    0 if any(p in u.lower() for p in ("impressum", "kontakt", "contact")) else 1,
+                    0 if u in search_urls else 1,
+                    u,
+                ),
             )
 
             for url in ordered:
                 if len(leads) >= self.max_leads:
                     break
                 found = await self._extract_from_site(client, url)
+                found.sort(key=lambda lead: _email_priority(lead.email))
                 for lead in found:
                     if lead.email in self._seen_emails:
                         continue
@@ -214,7 +281,7 @@ class LeadFinder:
                     leads.append(lead)
                     if len(leads) >= self.max_leads:
                         break
-                await asyncio.sleep(0.4)
+                await asyncio.sleep(0.35)
 
         return leads
 

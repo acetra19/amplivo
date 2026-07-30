@@ -177,19 +177,30 @@ async def discover_leads(req: DiscoverRequest):
     """Find ICP leads from public Impressum/Kontakt pages and optionally import."""
     from packages.shared.lead_finder import SEED_URLS, LeadFinder
 
+    async with get_connection() as conn:
+        existing = await conn.fetch("SELECT lower(email) AS email FROM leads")
+        known_before = {r["email"] for r in existing}
+
     finder = LeadFinder(max_leads=min(req.max_leads, 50))
     discovered = await finder.discover(
         queries=[] if req.seeds_only else None,
         seed_urls=SEED_URLS,
+        exclude_emails=known_before,
+        prefer_search=not req.seeds_only,
     )
 
     imported: list[dict] = []
+    new_ready = 0
     if req.import_leads:
         for item in discovered:
+            is_new = item.email.lower() not in known_before
             payload = item.to_api_payload()
             lead_id = await upsert_lead(payload)
             score = await app.state.outbound.score_lead(lead_id)
-            await award_xp("lead_created", f"Discovered: {item.email}")
+            if is_new:
+                await award_xp("lead_created", f"Discovered: {item.email}")
+                if score.icp_match:
+                    new_ready += 1
             imported.append(
                 {
                     "lead_id": str(lead_id),
@@ -197,6 +208,7 @@ async def discover_leads(req: DiscoverRequest):
                     "company": item.company,
                     "score": score.score,
                     "icp_match": score.icp_match,
+                    "is_new": is_new,
                 }
             )
 
@@ -204,6 +216,9 @@ async def discover_leads(req: DiscoverRequest):
         "ok": True,
         "discovered": len(discovered),
         "imported": len(imported),
+        "new_leads": sum(1 for x in imported if x.get("is_new")),
+        "new_ready_estimate": new_ready,
+        "excluded_known": len(known_before),
         "leads": imported
         or [
             {"email": d.email, "company": d.company, "website": d.website}
