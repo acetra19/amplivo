@@ -24,6 +24,7 @@ from packages.shared.settings_store import get_runtime
 from packages.shared.gamification import award_xp, get_dashboard_state
 from packages.shared.models import LeadCreate
 from packages.shared.queue import dequeue_voice_call, enqueue_voice_call, ping_redis, voice_queue_length
+from packages.shared.inbox import get_reply_inbox
 from packages.shared.money_plumbing import get_money_plumbing
 from packages.shared.ops_insights import get_ops_insights
 from packages.shared.stats import get_pipeline_stats
@@ -140,6 +141,12 @@ async def ops_insights():
 async def ops_plumbing():
     """Phase-0 money plumbing: affiliate link, attribution, postback readiness."""
     return await get_money_plumbing()
+
+
+@app.get("/ops/inbox")
+async def ops_inbox(days: int = 14, limit: int = 40):
+    """Inbound replies that may need an individual follow-up."""
+    return await get_reply_inbox(days=days, limit=limit)
 
 
 @app.get("/")
