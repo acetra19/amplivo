@@ -128,6 +128,14 @@ async def dashboard_ops_page():
     raise HTTPException(status_code=404, detail="Ops dashboard not found")
 
 
+@app.get("/dashboard/clips")
+async def dashboard_clips_page():
+    page = DASHBOARD_DIR / "clips.html"
+    if page.is_file():
+        return FileResponse(page)
+    raise HTTPException(status_code=404, detail="Clips dashboard not found")
+
+
 @app.get("/dashboard/state")
 async def dashboard_state():
     return await get_dashboard_state()

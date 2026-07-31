@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amplivo Clips</title>
+  <link rel="stylesheet" href="/dashboard/assets/style.css">
+  <link rel="stylesheet" href="/dashboard/assets/clips.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-icon">⚡</span>
+        <div>
+          <strong>Amplivo Clips</strong>
+          <small>Subsidiary</small>
+        </div>
+      </div>
+      <nav>
+        <a href="/dashboard">Command Center</a>
+        <a href="/dashboard/ops">Ops Insights</a>
+        <a href="/dashboard/clips" class="nav-active">Clips</a>
+        <a href="/dashboard/settings">Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="/" class="link-muted">← Landing Page</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1>Amplivo Clips</h1>
+          <p class="subtitle">Marketplace clipper pipeline — seed, produce, submit, get paid</p>
+        </div>
+        <div class="btn-row">
+          <button id="refresh-btn" class="btn btn-secondary" type="button">Refresh</button>
+          <button id="drain-btn" class="btn" type="button">Run Drain</button>
+        </div>
+      </header>
+
+      <p id="runtime-banner" class="group-desc" style="margin-bottom:1rem">Loading runtime…</p>
+
+      <section class="stats-grid" id="kpi-grid">
+        <article class="stat-card"><span class="stat-label">Workable</span><strong id="k-work">–</strong><small class="stat-sub">open w/o active job</small></article>
+        <article class="stat-card"><span class="stat-label">In Flight</span><strong id="k-flight">–</strong><small class="stat-sub">queued / producing / qa</small></article>
+        <article class="stat-card"><span class="stat-label">Ready Jobs</span><strong id="k-ready">–</strong></article>
+        <article class="stat-card"><span class="stat-label">Submitted</span><strong id="k-sub">–</strong></article>
+        <article class="stat-card accent"><span class="stat-label">Paid</span><strong id="k-paid">–</strong><small id="k-payout" class="stat-sub">–</small></article>
+        <article class="stat-card"><span class="stat-label">Failed / Rejected</span><strong id="k-bad">–</strong></article>
+      </section>
+
+      <section class="panel">
+        <h2>Agent Actions</h2>
+        <p class="group-desc">Drain polls Opus, produces only workable campaigns, and auto-submits only in dry-run.</p>
+        <div class="btn-row">
+          <button id="seed-btn" class="btn btn-secondary" type="button">Seed Demo Campaigns</button>
+          <button id="poll-btn" class="btn btn-secondary" type="button">Poll Producing</button>
+          <button id="run-btn" class="btn btn-secondary" type="button">Produce Clips</button>
+          <button id="submit-btn" class="btn btn-secondary" type="button">Auto-Submit Ready</button>
+        </div>
+        <pre id="action-log" class="export-preview">Ready.</pre>
+      </section>
+
+      <div class="two-col">
+        <section class="panel">
+          <h2>Add Campaign</h2>
+          <form id="campaign-form" class="form-stack">
+            <label class="field-label">Title
+              <input id="c-title" required placeholder="Whop campaign name">
+            </label>
+            <label class="field-label">Source URL (VOD / YouTube / Twitch)
+              <input id="c-url" required type="url" placeholder="https://...">
+            </label>
+            <label class="field-label">Marketplace
+              <select id="c-market">
+                <option value="whop">whop</option>
+                <option value="clipt">clipt</option>
+                <option value="getclipped">getclipped</option>
+                <option value="manual">manual</option>
+                <option value="demo">demo</option>
+              </select>
+            </label>
+            <label class="field-label">Brief
+              <textarea id="c-brief" rows="3" placeholder="Hook style, length, do-nots"></textarea>
+            </label>
+            <label class="field-label">Payout rate (USD)
+              <input id="c-rate" type="number" step="0.01" placeholder="2.0">
+            </label>
+            <button class="btn" type="submit">Create Campaign</button>
+          </form>
+        </section>
+
+        <section class="panel">
+          <h2>Automation Map</h2>
+          <ul class="mini-list" id="auto-map">
+            <li><span>Campaign ingest</span><span class="muted">agent + GUI</span></li>
+            <li><span>OpusClip produce</span><span class="muted">agent (dry-run OK)</span></li>
+            <li><span>QA gate</span><span class="muted">LLM agent</span></li>
+            <li><span>Opus poll / resume</span><span class="muted">agent + drain</span></li>
+            <li><span>Proof submit</span><span class="muted">dry-run auto / manual URL</span></li>
+            <li><span>Job dedupe</span><span class="muted">1 active job / campaign</span></li>
+            <li><span>Mark paid</span><span class="muted">GUI after payout</span></li>
+            <li><span>Marketplace login scrape</span><span class="muted">not yet</span></li>
+            <li><span>TikTok/IG native post</span><span class="muted">not yet</span></li>
+          </ul>
+        </section>
+      </div>
+
+      <section class="panel">
+        <h2>Campaigns</h2>
+        <div class="table-wrap">
+          <table class="data-table" id="campaigns-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Market</th>
+                <th>Rate</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Jobs</h2>
+        <div class="table-wrap">
+          <table class="data-table" id="jobs-table">
+            <thead>
+              <tr>
+                <th>Campaign</th>
+                <th>Status</th>
+                <th>QA</th>
+                <th>Clip / Post</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="/dashboard/assets/clips.js"></script>
+</body>
+</html>

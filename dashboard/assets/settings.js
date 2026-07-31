@@ -5,6 +5,7 @@
     email: "fields-email",
     domains: "fields-domains",
     affiliate: "fields-affiliate",
+    clips: "fields-clips",
     agent: "fields-agent",
     security: "fields-security",
   };

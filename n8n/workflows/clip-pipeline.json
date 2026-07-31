@@ -16,13 +16,13 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://api:8000/clips/jobs/run",
+        "url": "http://api:8000/clips/drain",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ max_jobs: 3, dry_run: true }) }}"
+        "jsonBody": "={{ JSON.stringify({}) }}"
       },
-      "id": "run-jobs",
-      "name": "API: Run Clip Jobs",
+      "id": "drain-clips",
+      "name": "API: Drain Clips",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [480, 300]
@@ -41,9 +41,9 @@
   ],
   "connections": {
     "Cron: Hourly :15": {
-      "main": [[{ "node": "API: Run Clip Jobs", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "API: Drain Clips", "type": "main", "index": 0 }]]
     },
-    "API: Run Clip Jobs": {
+    "API: Drain Clips": {
       "main": [[{ "node": "API: Clip Stats", "type": "main", "index": 0 }]]
     }
   },

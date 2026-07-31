@@ -22,8 +22,9 @@ class CampaignCreate(BaseModel):
 
 class JobRunRequest(BaseModel):
     campaign_id: UUID | None = None
-    max_jobs: int = 3
+    max_jobs: int | None = None
     dry_run: bool | None = None
+    force: bool = False
 
 
 class JobSubmitRequest(BaseModel):

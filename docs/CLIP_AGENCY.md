@@ -10,11 +10,33 @@ Agent pipeline turns campaign sources into posted short-form clips and payout pr
 
 ## v1 scope (build)
 
-1. Ingest campaigns (manual API + stub scanner)
+1. Ingest campaigns (manual API + stub scanner + GUI seed)
 2. Produce clips via OpusClip API (dry-run if no key)
 3. Quality gate (LLM score hook / length / brand-safety)
 4. Record post + proof URL for marketplace submit
-5. n8n hourly tick for due jobs
+5. n8n hourly drain (`/clips/drain`) for produce + auto-submit
+6. GUI at `/dashboard/clips` for ops (seed, drain, submit, mark paid)
+
+## Agent-automatable now
+
+| Action | Endpoint / UI |
+|--------|----------------|
+| Seed demo campaigns | `POST /clips/campaigns/seed` or GUI button |
+| Ingest campaign | `POST /clips/campaigns` or GUI form |
+| Produce + QA | `POST /clips/jobs/run` (skips campaigns with active jobs) |
+| Poll Opus producing | `POST /clips/jobs/poll` |
+| Full cycle | `POST /clips/drain` or GUI **Run Drain** |
+| Auto-submit ready | dry-run only (`force=true` to override) |
+| Mark paid | `POST /clips/jobs/{id}/paid` or GUI |
+| Overview | `GET /clips/overview` |
+
+Guards: max 1 blocking job per campaign; `clips_max_jobs_per_run` from settings; fake proof auto-submit only when `clips_dry_run=true`.
+
+## Still human / later
+
+- Marketplace browser login + campaign scrape
+- Real TikTok/IG posting (not proof stub)
+- Payout reconciliation from marketplace wallets
 
 ## Out of scope (v1)
 

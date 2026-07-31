@@ -19,6 +19,7 @@
       <nav>
         <a href="/dashboard">Overview</a>
         <a href="/dashboard/ops">Ops Insights</a>
+        <a href="/dashboard/clips">Clips</a>
         <a href="/dashboard/settings" class="nav-active">Settings</a>
       </nav>
       <div class="sidebar-footer">
@@ -73,6 +74,12 @@
           <div class="form-grid" id="fields-affiliate"></div>
         </section>
 
+        <section class="panel settings-group" data-group="clips">
+          <h2>🎬 Amplivo Clips</h2>
+          <p class="group-desc">OpusClip key + dry-run for the marketplace clipper subsidiary.</p>
+          <div class="form-grid" id="fields-clips"></div>
+        </section>
+
         <section class="panel settings-group" data-group="agent">
           <h2>🎯 Agent ICP</h2>
           <p class="group-desc">Ideal customer profile for lead scoring.</p>
@@ -96,6 +103,6 @@
   </div>
 
   <div id="toast" class="toast" hidden></div>
-  <script src="/dashboard/assets/settings.js?v=4"></script>
+  <script src="/dashboard/assets/settings.js?v=5"></script>
 </body>
 </html>
