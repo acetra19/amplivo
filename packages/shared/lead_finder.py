@@ -113,6 +113,34 @@ SEED_URLS = [
     "https://www.daniela-samson.de/impressum/",
     "https://www.nicole-jager.de/impressum/",
     "https://www.alexandra-adler.de/impressum/",
+    "https://www.sabrina-boger.de/impressum/",
+    "https://www.nadine-grandmontagne.de/impressum/",
+    "https://www.christiane-sauer.de/impressum/",
+    "https://www.monika-birkner.de/impressum/",
+    "https://www.anja-von-ruetten.de/impressum/",
+    "https://www.birgit-schuckert.de/impressum/",
+    "https://www.regina-stoiber.de/impressum/",
+    "https://www.vera-heim.de/impressum/",
+    "https://www.susanneschmidt.de/impressum/",
+    "https://www.katharina-templin.de/impressum/",
+    "https://www.miriam-junius.de/impressum/",
+    "https://www.annette-schavan.de/impressum/",
+    "https://www.online-marketing-coach.de/impressum/",
+    "https://www.socialmediaakademie.de/impressum/",
+    "https://www.bloggercoach.de/impressum/",
+    "https://www.contentqueen.de/impressum/",
+    "https://www.podcastliebe.de/impressum/",
+    "https://www.sichtbarkeitsbooster.de/impressum/",
+    "https://www.lauchhammer-coaching.de/impressum/",
+    "https://www.erfolgsspur.de/impressum/",
+    "https://www.potenzialentfaltung.com/impressum/",
+    "https://www.businessheldin.de/impressum/",
+    "https://www.selbststaendig-erfolgreich.de/impressum/",
+    "https://www.gruendercoach.de/impressum/",
+    "https://www.startup-coach.de/impressum/",
+    "https://www.mindset-mentor.de/impressum/",
+    "https://www.flow-business.de/impressum/",
+    "https://www.freedom-business.de/impressum/",
 ]
 
 USER_AGENT = (
@@ -244,6 +272,10 @@ class LeadFinder:
         leads: list[DiscoveredLead] = []
         excluded = {e.lower() for e in (exclude_emails or set())}
         self._seen_emails |= excluded
+        # Skip whole domains we already have any inbox for
+        self._seen_domains |= {
+            e.split("@", 1)[1] for e in excluded if "@" in e
+        }
 
         async with httpx.AsyncClient(
             timeout=self.timeout,
@@ -252,19 +284,18 @@ class LeadFinder:
         ) as client:
             search_urls: list[str] = []
             for query in queries:
-                if len(leads) >= self.max_leads:
-                    break
                 search_urls.extend(await self._search_duckduckgo(client, query))
 
             seed_list = list(seed_urls or [])
-            # Search first so exhausted seed lists do not fill the quota with dupes
-            urls = (search_urls + seed_list) if prefer_search else (seed_list + search_urls)
+            # Seeds first when search is weak (common on VPS / DDG blocks)
+            urls = (seed_list + search_urls) if not prefer_search else (search_urls + seed_list)
+            if prefer_search and len(search_urls) < 5:
+                urls = seed_list + search_urls
 
             ordered = sorted(
                 dict.fromkeys(urls),
                 key=lambda u: (
                     0 if any(p in u.lower() for p in ("impressum", "kontakt", "contact")) else 1,
-                    0 if u in search_urls else 1,
                     u,
                 ),
             )
@@ -272,16 +303,23 @@ class LeadFinder:
             for url in ordered:
                 if len(leads) >= self.max_leads:
                     break
+                host = urlparse(url).netloc.lower().removeprefix("www.")
+                if host in self._seen_domains:
+                    continue
                 found = await self._extract_from_site(client, url)
                 found.sort(key=lambda lead: _email_priority(lead.email))
                 for lead in found:
                     if lead.email in self._seen_emails:
                         continue
+                    domain = lead.email.split("@", 1)[1]
+                    if domain in self._seen_domains:
+                        continue
                     self._seen_emails.add(lead.email)
+                    self._seen_domains.add(domain)
                     leads.append(lead)
                     if len(leads) >= self.max_leads:
                         break
-                await asyncio.sleep(0.35)
+                await asyncio.sleep(0.3)
 
         return leads
 

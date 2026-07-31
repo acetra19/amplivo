@@ -170,6 +170,7 @@ class DiscoverRequest(BaseModel):
     max_leads: int = 25
     import_leads: bool = True
     seeds_only: bool = False
+    prefer_search: bool | None = None
 
 
 @app.post("/leads/discover")
@@ -182,11 +183,16 @@ async def discover_leads(req: DiscoverRequest):
         known_before = {r["email"] for r in existing}
 
     finder = LeadFinder(max_leads=min(req.max_leads, 50))
+    prefer_search = (
+        False if req.seeds_only
+        else True if req.prefer_search is None
+        else req.prefer_search
+    )
     discovered = await finder.discover(
         queries=[] if req.seeds_only else None,
         seed_urls=SEED_URLS,
         exclude_emails=known_before,
-        prefer_search=not req.seeds_only,
+        prefer_search=prefer_search,
     )
 
     imported: list[dict] = []
