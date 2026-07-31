@@ -344,7 +344,8 @@ async def outbound_process_queue():
 
 
 class DrainQuotaRequest(BaseModel):
-    max_new: int | None = None
+    # Keep batches small so reverse-proxy timeouts do not kill long LLM runs
+    max_new: int | None = 8
 
 
 @app.post("/outbound/drain-quota")

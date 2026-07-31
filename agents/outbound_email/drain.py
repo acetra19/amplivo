@@ -51,6 +51,19 @@ async def drain_outbound_quota(agent, *, max_new: int | None = None) -> dict:
         except BrevoError as exc:
             sent.append({"lead_id": str(lead_id), "email": lead["email"], "error": str(exc)})
             break
+        except Exception as exc:
+            # Keep draining; one bad personalize/LLM call must not 500 the whole job
+            sent.append(
+                {
+                    "lead_id": str(lead_id),
+                    "email": lead["email"],
+                    "score": score,
+                    "sequence": sequence,
+                    "skipped": True,
+                    "reason": f"send_failed:{type(exc).__name__}:{exc}",
+                }
+            )
+            continue
 
         sent.append(
             {
