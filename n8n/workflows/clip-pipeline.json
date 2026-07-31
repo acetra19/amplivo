@@ -1,0 +1,52 @@
+{
+  "name": "Amplivo Clips Pipeline (Hourly)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "15 * * * *" }]
+        }
+      },
+      "id": "cron-clips",
+      "name": "Cron: Hourly :15",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://api:8000/clips/jobs/run",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ max_jobs: 3, dry_run: true }) }}"
+      },
+      "id": "run-jobs",
+      "name": "API: Run Clip Jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "http://api:8000/clips/stats"
+      },
+      "id": "clip-stats",
+      "name": "API: Clip Stats",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 300]
+    }
+  ],
+  "connections": {
+    "Cron: Hourly :15": {
+      "main": [[{ "node": "API: Run Clip Jobs", "type": "main", "index": 0 }]]
+    },
+    "API: Run Clip Jobs": {
+      "main": [[{ "node": "API: Clip Stats", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "tags": [{ "name": "amplivo-clips" }, { "name": "subsidiary" }]
+}

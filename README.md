@@ -15,6 +15,7 @@ Autonomous affiliate sales agency on **amplivo.net** — VPS + Docker.
 | Product knowledge base (GoHighLevel FAQ) | ✅ auto-seeded |
 | Voice call queue (LiveKit-ready) | ✅ logs until LiveKit configured |
 | Gamification dashboard (XP, quests, badges) | ✅ `/dashboard` |
+| Amplivo Clips (marketplace clipper subsidiary) | ✅ `/clips/*` |
 | HTTPS via Caddy | ✅ prod compose |
 
 ## Quick Start (VPS)
@@ -75,6 +76,10 @@ python scripts/import-leads.py data/leads-example.csv --webhook https://n8n.ampl
 | GET | `/pipeline/stats` | Dashboard metrics |
 | POST | `/webhooks/voice-queue` | Queue voice call |
 | POST | `/webhooks/affiliate` | Record conversion |
+| GET | `/clips/stats` | Amplivo Clips stats |
+| POST | `/clips/campaigns` | Ingest clip campaign |
+| POST | `/clips/jobs/run` | Produce + QA clips (Opus / dry-run) |
+| POST | `/clips/jobs/{id}/submit` | Mark marketplace submission |
 
 ## Still needs your input
 

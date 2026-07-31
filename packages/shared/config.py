@@ -59,6 +59,12 @@ class Settings(BaseSettings):
     icp_max_employees: int = 20
     lead_score_threshold: int = 70
 
+    # Amplivo Clips subsidiary
+    opusclip_api_key: str = ""
+    clips_dry_run: bool = True
+    clips_default_marketplace: str = "whop"
+    clips_max_jobs_per_run: int = 5
+
     n8n_webhook_base: str = "http://localhost:5678"
     api_host: str = "0.0.0.0"
     api_port: int = 8000

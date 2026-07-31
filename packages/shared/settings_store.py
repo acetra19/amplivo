@@ -33,6 +33,10 @@ SETTING_FIELDS: dict[str, dict[str, Any]] = {
     "icp_min_employees":       {"group": "agent", "label": "Min Employees", "type": "number", "secret": False},
     "icp_max_employees":       {"group": "agent", "label": "Max Employees", "type": "number", "secret": False},
     "lead_score_threshold":    {"group": "agent", "label": "Score Threshold", "type": "number", "secret": False},
+    "opusclip_api_key":        {"group": "clips", "label": "OpusClip API Key", "type": "password", "secret": True},
+    "clips_dry_run":           {"group": "clips", "label": "Clips Dry Run", "type": "select", "options": ["true", "false"], "secret": False},
+    "clips_default_marketplace": {"group": "clips", "label": "Default Marketplace", "type": "text", "secret": False},
+    "clips_max_jobs_per_run":  {"group": "clips", "label": "Max Jobs Per Run", "type": "number", "secret": False},
     "settings_pin":            {"group": "security", "label": "Settings PIN", "type": "password", "secret": True},
 }
 
@@ -59,6 +63,10 @@ ENV_MAP = {
     "icp_min_employees": "ICP_MIN_EMPLOYEES",
     "icp_max_employees": "ICP_MAX_EMPLOYEES",
     "lead_score_threshold": "LEAD_SCORE_THRESHOLD",
+    "opusclip_api_key": "OPUSCLIP_API_KEY",
+    "clips_dry_run": "CLIPS_DRY_RUN",
+    "clips_default_marketplace": "CLIPS_DEFAULT_MARKETPLACE",
+    "clips_max_jobs_per_run": "CLIPS_MAX_JOBS_PER_RUN",
 }
 
 SETTINGS_ATTR = {
@@ -79,6 +87,10 @@ SETTINGS_ATTR = {
     "icp_min_employees": "icp_min_employees",
     "icp_max_employees": "icp_max_employees",
     "lead_score_threshold": "lead_score_threshold",
+    "opusclip_api_key": "opusclip_api_key",
+    "clips_dry_run": "clips_dry_run",
+    "clips_default_marketplace": "clips_default_marketplace",
+    "clips_max_jobs_per_run": "clips_max_jobs_per_run",
 }
 
 

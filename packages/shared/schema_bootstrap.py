@@ -56,3 +56,54 @@ async def ensure_app_schema() -> None:
             )
             """
         )
+
+        # Amplivo Clips subsidiary
+        await conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS clip_campaigns (
+              id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              marketplace     TEXT NOT NULL DEFAULT 'manual',
+              external_id     TEXT,
+              title           TEXT NOT NULL,
+              source_url      TEXT NOT NULL,
+              brief           TEXT,
+              payout_model    TEXT NOT NULL DEFAULT 'cpm',
+              payout_rate     NUMERIC(10,4),
+              currency        TEXT NOT NULL DEFAULT 'USD',
+              status          TEXT NOT NULL DEFAULT 'open',
+              metadata        JSONB NOT NULL DEFAULT '{}',
+              created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+              updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+            )
+            """
+        )
+        await conn.execute(
+            """
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_clip_campaigns_marketplace_ext
+            ON clip_campaigns (marketplace, external_id)
+            WHERE external_id IS NOT NULL
+            """
+        )
+        await conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS clip_jobs (
+              id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              campaign_id     UUID NOT NULL REFERENCES clip_campaigns(id) ON DELETE CASCADE,
+              status          TEXT NOT NULL DEFAULT 'queued',
+              opus_project_id TEXT,
+              clip_url        TEXT,
+              post_url        TEXT,
+              proof_url       TEXT,
+              qa_score        INT,
+              qa_notes        TEXT,
+              error_message   TEXT,
+              payout_amount   NUMERIC(10,2),
+              metadata        JSONB NOT NULL DEFAULT '{}',
+              created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+              updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+            )
+            """
+        )
+        await conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_clip_jobs_status ON clip_jobs(status)"
+        )
