@@ -84,6 +84,22 @@ async def ensure_app_schema() -> None:
             WHERE external_id IS NOT NULL
             """
         )
+        # Ensure ON CONFLICT target exists even if an older bootstrap omitted the index.
+        await conn.execute(
+            """
+            DO $$
+            BEGIN
+              IF NOT EXISTS (
+                SELECT 1 FROM pg_indexes
+                WHERE indexname = 'idx_clip_campaigns_marketplace_ext'
+              ) THEN
+                CREATE UNIQUE INDEX idx_clip_campaigns_marketplace_ext
+                ON clip_campaigns (marketplace, external_id)
+                WHERE external_id IS NOT NULL;
+              END IF;
+            END $$;
+            """
+        )
         await conn.execute(
             """
             CREATE TABLE IF NOT EXISTS clip_jobs (

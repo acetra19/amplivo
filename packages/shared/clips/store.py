@@ -29,7 +29,8 @@ async def create_campaign(data: dict[str, Any]) -> UUID:
               marketplace, external_id, title, source_url, brief,
               payout_model, payout_rate, currency, metadata
             ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb)
-            ON CONFLICT (marketplace, external_id) DO UPDATE SET
+            ON CONFLICT (marketplace, external_id) WHERE external_id IS NOT NULL
+            DO UPDATE SET
               title = EXCLUDED.title,
               source_url = EXCLUDED.source_url,
               brief = EXCLUDED.brief,
