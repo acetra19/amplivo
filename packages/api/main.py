@@ -18,6 +18,7 @@ from agents.qualifier_chat.agent import QualifierChatAgent
 from packages.shared.config import settings
 from packages.shared.db import get_connection, get_lead_by_email, get_lead_by_id, upsert_lead
 from packages.api.clips_routes import router as clips_router
+from packages.api.ops_leads_routes import router as ops_leads_router
 from packages.api.settings_routes import router as settings_router
 from packages.shared.affiliate import get_affiliate_url
 from packages.shared.brevo_inbound import parse_brevo_inbound
@@ -70,6 +71,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Amplivo API", version="0.3.0", lifespan=lifespan)
 app.include_router(settings_router)
 app.include_router(clips_router)
+app.include_router(ops_leads_router)
 
 _origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
 app.add_middleware(
@@ -134,6 +136,14 @@ async def dashboard_clips_page():
     if page.is_file():
         return FileResponse(page)
     raise HTTPException(status_code=404, detail="Clips dashboard not found")
+
+
+@app.get("/dashboard/leads")
+async def dashboard_leads_page():
+    page = DASHBOARD_DIR / "leads.html"
+    if page.is_file():
+        return FileResponse(page)
+    raise HTTPException(status_code=404, detail="Leads dashboard not found")
 
 
 @app.get("/dashboard/state")

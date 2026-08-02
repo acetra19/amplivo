@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
+from packages.shared.affiliate import get_affiliate_url
 from packages.shared.db import get_connection
 
 TEST_EMAIL_MARKERS = (
@@ -132,6 +133,13 @@ async def get_reply_inbox(days: int = 14, limit: int = 40) -> dict:
         items.append(item)
         if reason:
             needs_action.append(item)
+
+    # Attach tracked affiliate URLs for actionable rows (GUI reply presets).
+    for item in needs_action:
+        try:
+            item["affiliate_url"] = await get_affiliate_url(item["lead_id"])
+        except Exception:
+            item["affiliate_url"] = None
 
     return {
         "days": days,

@@ -123,3 +123,42 @@ async def ensure_app_schema() -> None:
         await conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_clip_jobs_status ON clip_jobs(status)"
         )
+
+        # Refresh Systeme.io sequence CTAs when steps table exists.
+        exists = await conn.fetchval(
+            """SELECT EXISTS (
+                 SELECT 1 FROM information_schema.tables
+                 WHERE table_name = 'email_sequence_steps'
+               )"""
+        )
+        if exists:
+            await conn.execute(
+                """
+                UPDATE email_sequence_steps AS s
+                SET body_tpl = regexp_replace(
+                  s.body_tpl,
+                  'Falls hilfreich, hier der kostenlose Zugang:',
+                  'CTA: Free-Zugang starten (1 Klick, keine Kreditkarte):'
+                )
+                FROM email_sequences es
+                WHERE s.sequence_id = es.id
+                  AND es.slug = 'outbound_a'
+                  AND s.step_order = 1
+                  AND s.body_tpl NOT LIKE '%CTA:%'
+                """
+            )
+            await conn.execute(
+                """
+                UPDATE email_sequence_steps AS s
+                SET body_tpl = regexp_replace(
+                  s.body_tpl,
+                  'Ein praktischer Start: Free-Plan von Systeme.io',
+                  'CTA: Hier kostenlos starten — Free-Plan von Systeme.io'
+                )
+                FROM email_sequences es
+                WHERE s.sequence_id = es.id
+                  AND es.slug = 'nurture_b'
+                  AND s.step_order = 1
+                  AND s.body_tpl NOT LIKE '%CTA:%'
+                """
+            )

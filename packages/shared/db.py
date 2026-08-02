@@ -200,7 +200,7 @@ async def pause_sequences_for_lead(lead_id: UUID) -> None:
 
 
 async def get_outreach_candidates(limit: int = 20) -> list[asyncpg.Record]:
-    """Leads ready for first cold touch, highest score first."""
+    """Leads ready for first cold touch — personal inboxes before generic, then score."""
     async with get_connection() as conn:
         return await conn.fetch(
             """SELECT l.*
@@ -216,7 +216,16 @@ async def get_outreach_candidates(limit: int = 20) -> list[asyncpg.Record]:
                      AND i.channel = 'email'
                      AND i.direction = 'outbound'
                  )
-               ORDER BY l.score DESC NULLS LAST, l.created_at ASC
+               ORDER BY
+                 CASE
+                   WHEN split_part(lower(l.email), '@', 1) IN (
+                     'info','contact','kontakt','hello','hallo','office','mail',
+                     'team','service','anfrage','beratung','support'
+                   ) THEN 1
+                   ELSE 0
+                 END ASC,
+                 l.score DESC NULLS LAST,
+                 l.created_at ASC
                LIMIT $1""",
             limit,
         )

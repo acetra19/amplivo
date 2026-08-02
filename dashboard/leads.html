@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leads – Amplivo</title>
+  <link rel="stylesheet" href="/dashboard/assets/style.css">
+  <link rel="stylesheet" href="/dashboard/assets/leads.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-icon">⚡</span>
+        <div>
+          <strong>Amplivo</strong>
+          <small>Leads Hub</small>
+        </div>
+      </div>
+      <nav>
+        <a href="/dashboard">Command Center</a>
+        <a href="/dashboard/ops">Ops Insights</a>
+        <a href="/dashboard/leads" class="nav-active">Leads</a>
+        <a href="/dashboard/clips">Clips</a>
+        <a href="/dashboard/settings">Settings</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a href="/" class="link-muted">← Landing Page</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1>Leads Hub</h1>
+          <p class="subtitle">Import, drain quota, reply, record conversions</p>
+        </div>
+        <div class="btn-row">
+          <button id="refresh-btn" class="btn btn-secondary" type="button">Refresh</button>
+          <button id="drain-btn" class="btn" type="button">Run Drain</button>
+        </div>
+      </header>
+
+      <section class="stats-grid" id="quota-grid">
+        <article class="stat-card"><span class="stat-label">Sent Today</span><strong id="k-sent">–</strong></article>
+        <article class="stat-card accent"><span class="stat-label">Remaining</span><strong id="k-rem">–</strong><small id="k-limit" class="stat-sub">–</small></article>
+        <article class="stat-card"><span class="stat-label">Ready Pool</span><strong id="k-ready">–</strong></article>
+        <article class="stat-card"><span class="stat-label">Needs Action</span><strong id="k-inbox">–</strong></article>
+      </section>
+
+      <pre id="action-log" class="export-preview">Ready.</pre>
+
+      <div class="two-col">
+        <section class="panel">
+          <h2>Add Lead</h2>
+          <form id="lead-form" class="form-stack">
+            <label class="field-label">Email
+              <input id="l-email" type="email" required placeholder="coach@example.de">
+            </label>
+            <label class="field-label">First name
+              <input id="l-first" placeholder="Optional">
+            </label>
+            <label class="field-label">Company
+              <input id="l-company" placeholder="Optional">
+            </label>
+            <label class="field-label">Website
+              <input id="l-website" type="url" placeholder="https://…">
+            </label>
+            <button class="btn" type="submit">Create Lead</button>
+          </form>
+        </section>
+
+        <section class="panel">
+          <h2>CSV Paste Import</h2>
+          <p class="group-desc">Header row required: email,first_name,company,website,industry,source</p>
+          <textarea id="csv-paste" rows="8" placeholder="email,first_name,company&#10;hello@coach.de,Anna,Anna Coaching"></textarea>
+          <div class="btn-row" style="margin-top:0.75rem">
+            <button id="csv-import-btn" class="btn" type="button">Import CSV</button>
+          </div>
+        </section>
+      </div>
+
+      <section class="panel">
+        <h2>Ready Pool</h2>
+        <p class="group-desc">Personal inboxes first, then highest score. Generic info@ marked.</p>
+        <div class="table-wrap">
+          <table class="data-table" id="ready-table">
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Company</th>
+                <th>Score</th>
+                <th>Flags</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Inbox — Needs Action</h2>
+        <div id="inbox-list" class="inbox-list"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Record Conversion</h2>
+        <p class="group-desc">Manual Systeme.io referral — no secret needed in the browser.</p>
+        <form id="conv-form" class="form-stack form-inline">
+          <label class="field-label">Buyer email
+            <input id="c-email" type="email" required placeholder="buyer@example.com">
+          </label>
+          <label class="field-label">Event
+            <select id="c-event">
+              <option value="signup">signup</option>
+              <option value="trial_start">trial_start</option>
+            </select>
+          </label>
+          <label class="field-label">Commission €
+            <input id="c-amount" type="number" step="0.01" placeholder="18.80">
+          </label>
+          <button class="btn" type="submit">Record</button>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="/dashboard/assets/leads.js"></script>
+</body>
+</html>
