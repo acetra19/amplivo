@@ -40,6 +40,7 @@ async def get_reply_inbox(days: int = 14, limit: int = 40) -> dict:
               l.first_name,
               l.company,
               l.status::text AS status,
+              l.do_not_contact,
               EXISTS (
                 SELECT 1 FROM interactions o
                 WHERE o.lead_id = i.lead_id
@@ -91,8 +92,14 @@ async def get_reply_inbox(days: int = 14, limit: int = 40) -> dict:
             created = created.replace(tzinfo=timezone.utc)
         age_hours = (now - created).total_seconds() / 3600
 
+        status = (r["status"] or "").lower()
+        closed = (
+            bool(r.get("do_not_contact"))
+            or sentiment in {"unsubscribe", "not_interested"}
+            or status in {"unsubscribed", "converted"}
+        )
         reason = None
-        if not is_test:
+        if not is_test and not closed:
             if not has_out:
                 reason = (
                     "interested_no_reply"
