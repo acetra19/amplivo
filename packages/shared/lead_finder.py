@@ -141,6 +141,20 @@ SEED_URLS = [
     "https://www.mindset-mentor.de/impressum/",
     "https://www.flow-business.de/impressum/",
     "https://www.freedom-business.de/impressum/",
+    # 2026-08-05 refresh — personal/coach sites still yielding new emails
+    "https://www.christamanske.de/impressum/",
+    "https://kurse.christamanske-coaching.de/impressum/",
+    "https://www.coaching-akademie-muenchen.de/impressum/",
+    "https://yvonne-floeper.de/kontakt/",
+    "https://yourown.coach/impressum/",
+    "https://bernd-slaghuis.de/impressum/",
+    "https://www.bettina-blum.de/impressum/",
+    "https://landschein.de/impressum/",
+    "https://www.exit-coach.de/impressum/",
+    "https://www.monika-birkner.de/impressum/",
+    "https://www.contentqueen.de/impressum/",
+    "https://www.annacrey.com/kontakt/",
+    "https://www.mirjam-munsch.de/kontakt/",
 ]
 
 USER_AGENT = (
