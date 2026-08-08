@@ -95,7 +95,7 @@ async def get_reply_inbox(days: int = 14, limit: int = 40) -> dict:
         status = (r["status"] or "").lower()
         closed = (
             bool(r.get("do_not_contact"))
-            or sentiment in {"unsubscribe", "not_interested"}
+            or sentiment in {"unsubscribe", "not_interested", "out_of_office"}
             or status in {"unsubscribed", "converted"}
         )
         reason = None

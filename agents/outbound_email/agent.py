@@ -288,9 +288,13 @@ Lead data:
         body = body.replace("{{sender_name}}", sender)
         body = body.replace("{{affiliate_url}}", url)
 
+        template_has_url = bool(url) and url in body
         prompt = f"""Personalize this cold email for the lead. Write in {language}.
-Keep it concise and professional. Preserve EVERY URL exactly as written (especially {{affiliate_url}} already substituted).
-Keep the STOP / unsubscribe P.S. if present. Do not invent facts about the lead. Do not remove the free-access link if present.
+Keep it concise, human, and professional — not salesy.
+Preserve EVERY URL exactly as written if present. Do not invent product or affiliate links.
+If the template has no URL, do NOT add any link.
+Keep the STOP / unsubscribe P.S. if present. Do not invent facts about the lead.
+Prefer one clear question over a pitch. Mention Systeme.io only if the template already does.
 Return JSON: {{"subject": str, "body": str}}
 
 Lead: {dict(lead)}
@@ -298,10 +302,13 @@ Template subject: {subject}
 Template body: {body}
 Sender name: {sender}"""
 
-        raw = await generate_text(prompt, "You write high-converting B2B cold emails.")
+        raw = await generate_text(
+            prompt,
+            "You write short, curious B2B cold emails that earn replies.",
+        )
         result = extract_json(raw)
-        # Guarantee affiliate URL survives LLM rewrite
-        if url and url not in result.get("body", ""):
+        # Only re-inject affiliate URL when the template already contained it
+        if template_has_url and url and url not in (result.get("body") or ""):
             result["body"] = (result.get("body") or body).rstrip() + f"\n\n{url}\n"
         return result
 

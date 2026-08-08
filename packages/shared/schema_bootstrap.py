@@ -132,33 +132,30 @@ async def ensure_app_schema() -> None:
                )"""
         )
         if exists:
+            # Curiosity-first: step 1 must not contain affiliate links.
             await conn.execute(
                 """
                 UPDATE email_sequence_steps AS s
-                SET body_tpl = regexp_replace(
-                  s.body_tpl,
-                  'Falls hilfreich, hier der kostenlose Zugang:',
-                  'CTA: Free-Zugang starten (1 Klick, keine Kreditkarte):'
-                )
+                SET
+                  subject_tpl = 'Kurze Frage zu {{company}}',
+                  body_tpl = E'Hallo {{first_name}},\n\nkurz zu {{company}}: womit baust du aktuell Funnels, E-Mail und Kurszugang – ein Tool oder mehrere?\n\nIch frage, weil viele Solo-Setups dort unnötig Zeit verlieren. Kein Pitch, nur die eine Frage.\n\nBeste Gruesse\n{{sender_name}}\n\nP.S. Kein Interesse an solchen Mails? Antworte mit STOP.'
                 FROM email_sequences es
                 WHERE s.sequence_id = es.id
                   AND es.slug = 'outbound_a'
                   AND s.step_order = 1
-                  AND s.body_tpl NOT LIKE '%CTA:%'
+                  AND s.body_tpl LIKE '%{{affiliate_url}}%'
                 """
             )
             await conn.execute(
                 """
                 UPDATE email_sequence_steps AS s
-                SET body_tpl = regexp_replace(
-                  s.body_tpl,
-                  'Ein praktischer Start: Free-Plan von Systeme.io',
-                  'CTA: Hier kostenlos starten — Free-Plan von Systeme.io'
-                )
+                SET
+                  subject_tpl = 'Kurze Frage an {{company}}',
+                  body_tpl = E'Hallo {{first_name}},\n\nbei {{company}} interessiert mich kurz: laeuft bei dir Funnel + E-Mail + Kurs schon in einem System – oder noch getrennt?\n\nNur diese eine Frage, kein Link, kein Call.\n\nBeste Gruesse\n{{sender_name}}\n\nP.S. Antworte STOP zum Abmelden.'
                 FROM email_sequences es
                 WHERE s.sequence_id = es.id
                   AND es.slug = 'nurture_b'
                   AND s.step_order = 1
-                  AND s.body_tpl NOT LIKE '%CTA:%'
+                  AND s.body_tpl LIKE '%{{affiliate_url}}%'
                 """
             )
