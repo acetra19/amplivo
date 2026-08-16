@@ -168,6 +168,8 @@ Lead data:
         personalized = await self.personalize_email(
             lead_id, step["subject_tpl"], step["body_tpl"], affiliate_url=affiliate_url,
         )
+        if not (personalized.get("subject") or "").strip() or not (personalized.get("body") or "").strip():
+            return {"skipped": True, "reason": "empty_personalized_email"}
 
         try:
             await send_email(
@@ -289,6 +291,8 @@ Lead data:
         body = body.replace("{{affiliate_url}}", url)
 
         template_has_url = bool(url) and url in body
+        fallback = {"subject": subject, "body": body}
+
         prompt = f"""Personalize this cold email for the lead. Write in {language}.
 Keep it concise, human, and professional — not salesy.
 Preserve EVERY URL exactly as written if present. Do not invent product or affiliate links.
@@ -302,15 +306,24 @@ Template subject: {subject}
 Template body: {body}
 Sender name: {sender}"""
 
-        raw = await generate_text(
-            prompt,
-            "You write short, curious B2B cold emails that earn replies.",
-        )
-        result = extract_json(raw)
+        try:
+            raw = await generate_text(
+                prompt,
+                "You write short, curious B2B cold emails that earn replies.",
+            )
+            result = extract_json(raw)
+        except Exception:
+            return fallback
+
+        out_subject = (result.get("subject") or "").strip()
+        out_body = (result.get("body") or "").strip()
+        if not out_subject or not out_body:
+            return fallback
+
         # Only re-inject affiliate URL when the template already contained it
-        if template_has_url and url and url not in (result.get("body") or ""):
-            result["body"] = (result.get("body") or body).rstrip() + f"\n\n{url}\n"
-        return result
+        if template_has_url and url and url not in out_body:
+            out_body = out_body.rstrip() + f"\n\n{url}\n"
+        return {"subject": out_subject, "body": out_body}
 
     async def classify_reply(self, lead_id: UUID, reply_body: str) -> ClassifiedReply:
         start = time.monotonic()

@@ -26,11 +26,12 @@ async def drain_outbound_quota(agent, *, max_new: int | None = None) -> dict:
 
     budget = remaining if max_new is None else min(remaining, max_new)
     threshold = int(await get_runtime("lead_score_threshold") or 70)
-    candidates = await get_outreach_candidates(limit=max(budget * 2, 10))
+    candidates = await get_outreach_candidates(limit=max(budget * 3, 15))
 
     sent: list[dict] = []
+    sent_ok = 0
     for lead in candidates:
-        if len(sent) >= budget:
+        if sent_ok >= budget:
             break
         if await remaining_quota() <= 0:
             break
@@ -42,7 +43,14 @@ async def drain_outbound_quota(agent, *, max_new: int | None = None) -> dict:
                 scored = await agent.score_lead(lead_id)
                 score = scored.score
             except Exception as exc:
-                sent.append({"lead_id": str(lead_id), "skipped": True, "reason": f"score_failed:{exc}"})
+                sent.append(
+                    {
+                        "lead_id": str(lead_id),
+                        "email": lead["email"],
+                        "skipped": True,
+                        "reason": f"score_failed:{exc}",
+                    }
+                )
                 continue
 
         sequence = "outbound_a" if score >= threshold else "nurture_b"
@@ -65,21 +73,22 @@ async def drain_outbound_quota(agent, *, max_new: int | None = None) -> dict:
             )
             continue
 
-        sent.append(
-            {
-                "lead_id": str(lead_id),
-                "email": lead["email"],
-                "score": score,
-                "sequence": sequence,
-                **result,
-            }
-        )
+        row = {
+            "lead_id": str(lead_id),
+            "email": lead["email"],
+            "score": score,
+            "sequence": sequence,
+            **result,
+        }
+        sent.append(row)
         if result.get("skipped") and result.get("reason") == "daily_limit_reached":
             break
+        if result.get("sent"):
+            sent_ok += 1
 
     return {
         "followups": followups,
         "new_sends": sent,
-        "sent_new": sum(1 for s in sent if s.get("sent")),
+        "sent_new": sent_ok,
         "remaining_quota": await remaining_quota(),
     }

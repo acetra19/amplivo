@@ -11,11 +11,20 @@ from packages.shared.settings_store import get_runtime
 
 def extract_json(text: str) -> dict:
     """Extract JSON object from LLM response, handling markdown fences."""
-    cleaned = text.strip()
+    cleaned = (text or "").strip()
+    if not cleaned:
+        raise json.JSONDecodeError("empty LLM response", cleaned, 0)
     fence_match = re.search(r"```(?:json)?\s*([\s\S]*?)```", cleaned)
     if fence_match:
         cleaned = fence_match.group(1).strip()
-    return json.loads(cleaned)
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        # Model often wraps JSON in prose — pull the first object
+        obj_match = re.search(r"\{[\s\S]*\}", cleaned)
+        if not obj_match:
+            raise
+        return json.loads(obj_match.group(0))
 
 
 async def _chat(system: str, prompt: str, model: str, max_tokens: int) -> str:
