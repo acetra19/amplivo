@@ -8,6 +8,21 @@ import re
 from packages.shared.config import settings
 from packages.shared.settings_store import get_runtime
 
+# Groq shut down these IDs on 2026-08-16 — remap legacy runtime/env values.
+GROQ_MODEL_ALIASES = {
+    "llama-3.1-8b-instant": "openai/gpt-oss-20b",
+    "llama-3.3-70b-versatile": "openai/gpt-oss-120b",
+    "llama-3.3-70b-specdec": "openai/gpt-oss-120b",
+    "llama3-70b-8192": "openai/gpt-oss-120b",
+    "llama3-8b-8192": "openai/gpt-oss-20b",
+    "mixtral-8x7b-32768": "openai/gpt-oss-120b",
+    "gemma2-9b-it": "openai/gpt-oss-20b",
+}
+
+
+def resolve_model(model: str) -> str:
+    return GROQ_MODEL_ALIASES.get(model, model)
+
 
 def extract_json(text: str) -> dict:
     """Extract JSON object from LLM response, handling markdown fences."""
@@ -29,6 +44,7 @@ def extract_json(text: str) -> dict:
 
 async def _chat(system: str, prompt: str, model: str, max_tokens: int) -> str:
     provider = (await get_runtime("llm_provider") or settings.llm_provider).lower()
+    model = resolve_model(model)
 
     if provider == "groq":
         api_key = await get_runtime("groq_api_key")

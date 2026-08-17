@@ -265,7 +265,7 @@ async def test_connections() -> dict:
                 from groq import Groq
                 client = Groq(api_key=key)
                 client.chat.completions.create(
-                    model=await get_runtime("classifier_model") or "llama-3.1-8b-instant",
+                    model=await get_runtime("classifier_model") or "openai/gpt-oss-20b",
                     max_tokens=5,
                     messages=[{"role": "user", "content": "ping"}],
                 )

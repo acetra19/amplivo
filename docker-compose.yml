@@ -81,8 +81,8 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
       LLM_PROVIDER: ${LLM_PROVIDER:-groq}
-      DEFAULT_LLM_MODEL: ${DEFAULT_LLM_MODEL:-llama-3.3-70b-versatile}
-      CLASSIFIER_MODEL: ${CLASSIFIER_MODEL:-llama-3.1-8b-instant}
+      DEFAULT_LLM_MODEL: ${DEFAULT_LLM_MODEL:-openai/gpt-oss-120b}
+      CLASSIFIER_MODEL: ${CLASSIFIER_MODEL:-openai/gpt-oss-20b}
       BREVO_API_KEY: ${BREVO_API_KEY:-}
       OUTBOUND_FROM_EMAIL: ${OUTBOUND_FROM_EMAIL:-james@amplivo.net}
       OUTBOUND_FROM_NAME: ${OUTBOUND_FROM_NAME:-James}

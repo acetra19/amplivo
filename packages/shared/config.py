@@ -16,10 +16,10 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     openai_api_key: str = ""
 
-    # Groq defaults (free tier friendly)
-    default_llm_model: str = "llama-3.3-70b-versatile"
-    classifier_model: str = "llama-3.1-8b-instant"
-    premium_llm_model: str = "llama-3.3-70b-versatile"
+    # Groq defaults (updated after 2026-08-16 Llama shutdown)
+    default_llm_model: str = "openai/gpt-oss-120b"
+    classifier_model: str = "openai/gpt-oss-20b"
+    premium_llm_model: str = "openai/gpt-oss-120b"
 
     # Anthropic alternatives (set LLM_PROVIDER=anthropic)
     # default_llm_model: claude-3-5-haiku-20241022
