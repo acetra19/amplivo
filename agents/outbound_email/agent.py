@@ -87,6 +87,35 @@ def _parse_classified_reply(raw: str, reply_body: str) -> ClassifiedReply:
     return ClassifiedReply(**data)
 
 
+def _heuristic_score(lead: dict) -> LeadScoreResult:
+    """Fallback when LLM scoring is unavailable — keep pipeline moving."""
+    industry = (lead.get("industry") or "").lower()
+    country = (lead.get("country") or "").upper()
+    email = (lead.get("email") or "").lower()
+    local = email.split("@", 1)[0] if "@" in email else ""
+    employees = lead.get("employee_count") or 1
+
+    score = 40
+    if industry in {"online_business", "coaching", "marketing_agency", "education"}:
+        score += 25
+    if country in {"DE", "AT", "CH"}:
+        score += 10
+    if 1 <= int(employees) <= 20:
+        score += 10
+    if local and local not in {
+        "info", "contact", "kontakt", "hello", "hallo", "office", "mail", "team",
+    }:
+        score += 10
+    score = max(0, min(100, score))
+    icp = score >= 55
+    return LeadScoreResult(
+        score=score,
+        icp_match=icp,
+        reasoning="Heuristic score (LLM unavailable)",
+        recommended_sequence="outbound_a" if score >= 70 else "nurture_b",
+    )
+
+
 class OutboundEmailAgent:
     name = "outbound_email"
 
@@ -114,9 +143,12 @@ Lead data:
 - Country: {lead['country']}
 - Website: {lead['website']}"""
 
-        raw = await classify_text(prompt, SCORE_SYSTEM)
-        data = extract_json(raw)
-        result = LeadScoreResult(**data)
+        try:
+            raw = await classify_text(prompt, SCORE_SYSTEM)
+            data = extract_json(raw)
+            result = LeadScoreResult(**data)
+        except Exception:
+            result = _heuristic_score(dict(lead))
 
         # Never downgrade pipeline status on re-score (discover re-imports contacts)
         current = lead.get("status")
