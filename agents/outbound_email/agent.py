@@ -236,10 +236,39 @@ Lead data:
                 result = await self.send_sequence_step(
                     item["lead_id"], item["sequence_slug"], item["current_step"] + 1,
                 )
-                results.append(result)
-            except BrevoError:
+                results.append(
+                    {
+                        "lead_id": str(item["lead_id"]),
+                        "email": item.get("email"),
+                        **result,
+                    }
+                )
+                if result.get("skipped") and result.get("reason") == "daily_limit_reached":
+                    break
+            except BrevoError as exc:
+                results.append(
+                    {
+                        "lead_id": str(item["lead_id"]),
+                        "email": item.get("email"),
+                        "error": str(exc),
+                    }
+                )
                 break
-        return {"processed": len(results), "results": results, "remaining_quota": await remaining_quota()}
+            except Exception as exc:
+                results.append(
+                    {
+                        "lead_id": str(item["lead_id"]),
+                        "email": item.get("email"),
+                        "skipped": True,
+                        "reason": f"send_failed:{type(exc).__name__}:{exc}",
+                    }
+                )
+                continue
+        return {
+            "processed": sum(1 for r in results if r.get("sent")),
+            "results": results,
+            "remaining_quota": await remaining_quota(),
+        }
 
     async def send_reply_email(
         self,
