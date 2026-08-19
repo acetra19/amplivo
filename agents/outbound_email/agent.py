@@ -497,28 +497,33 @@ Reply:
 
     def _interested_reply(self, lead: dict | None, affiliate_url: str) -> tuple[str, str]:
         name = (lead or {}).get("first_name") or "there"
+        company = (lead or {}).get("company") or "your business"
         sender = settings.outbound_from_name
         country = ((lead or {}).get("country") or "DE").upper()
+        setup_url = "https://www.amplivo.net/setup"
         if country in {"DE", "AT", "CH"}:
             body = (
                 f"Hallo {name},\n\n"
                 "super – dann machen wir es konkret.\n\n"
-                f"1) Leg in 2 Minuten den Free-Account an (ohne Kreditkarte):\n{affiliate_url}\n\n"
-                "2) Antworte mit SETUP – ich richte mit dir in ~20 Minuten "
-                "den ersten Funnel + E-Mail ein.\n\n"
-                "Wenn du lieber allein startest: trotzdem den Link nutzen, "
-                "bei Haengern einfach schreiben.\n\n"
+                f"Angebot fuer {company}: Funnel live in 48 Stunden "
+                f"(Opt-in, Danke-Seite, Welcome-Mail) fuer 197 EUR.\n"
+                f"Details: {setup_url}\n\n"
+                "Antworte BUY – dann kommt die PayPal-Rechnung an diese Mail.\n\n"
+                "Wenn du lieber allein baust:\n"
+                f"{affiliate_url}\n\n"
                 f"Beste Gruesse\n{sender}"
             )
-            return "SETUP: Free-Zugang + 20-Min Hilfe", body
+            return "BUY: 48h Funnel-Setup (197 EUR)", body
 
         body = (
             f"Hi {name},\n\n"
-            "Great — let's make this concrete.\n\n"
-            f"1) Create the free account (no credit card):\n{affiliate_url}\n\n"
-            "2) Reply SETUP — I'll help you set up the first funnel + email "
-            "in about 20 minutes.\n\n"
-            "Prefer solo? Use the link anyway and reply if you get stuck.\n\n"
+            "Great — here's the concrete offer.\n\n"
+            f"48-hour funnel setup for {company} "
+            f"(opt-in, thank-you, welcome email) for €197.\n"
+            f"Details: {setup_url}\n\n"
+            "Reply BUY — we'll email a PayPal invoice.\n\n"
+            "Prefer DIY:\n"
+            f"{affiliate_url}\n\n"
             f"Best,\n{sender}"
         )
-        return "SETUP: free access + 20-min help", body
+        return "BUY: 48h funnel setup (€197)", body

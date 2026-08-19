@@ -38,6 +38,13 @@ WELCOME_MESSAGE = (
     "the free plan, and whether it fits your online business. What would you like to know?"
 )
 
+SETUP_WELCOME_MESSAGE = (
+    "Hi — this is the Amplivo 48h Funnel Setup (€197, fixed scope). "
+    "I will confirm fit (offer, audience, timeline). "
+    "If it matches, type BUY and we invoice you by email to start within 48 hours. "
+    "What do you sell, and do you already have a Systeme.io account?"
+)
+
 
 async def seed_settings_from_env() -> None:
     """Import .env values into DB on first run (one-time per key)."""
@@ -177,6 +184,15 @@ async def landing_page():
     return {"message": "Agentic Sales Agency API", "docs": "/docs"}
 
 
+@app.get("/setup")
+async def setup_offer_page():
+    """Paid 48h funnel setup offer (separate from free affiliate homepage)."""
+    page = LANDING_DIR / "setup.html"
+    if page.is_file():
+        return FileResponse(page)
+    raise HTTPException(status_code=404, detail="Setup page not found")
+
+
 @app.get("/pipeline/stats")
 async def pipeline_stats():
     return await get_pipeline_stats()
@@ -266,20 +282,27 @@ class RegisterRequest(BaseModel):
     company: str | None = None
     industry: str = "online_business"
     source: str = "landing"
+    offer: str | None = None
 
 
 @app.post("/register")
 async def register_visitor(req: RegisterRequest):
-    lead_id = await upsert_lead(req.model_dump())
+    payload = req.model_dump()
+    offer = (payload.pop("offer", None) or "").strip().lower()
+    if offer == "setup_48h":
+        payload["source"] = "setup_48h"
+    lead_id = await upsert_lead(payload)
     score_result = await app.state.outbound.score_lead(lead_id)
     affiliate_url = await get_affiliate_url(lead_id)
+    welcome = SETUP_WELCOME_MESSAGE if offer == "setup_48h" else WELCOME_MESSAGE
 
     return {
         "lead_id": str(lead_id),
         "score": score_result.score,
         "icp_match": score_result.icp_match,
         "affiliate_url": affiliate_url,
-        "welcome_message": WELCOME_MESSAGE,
+        "welcome_message": welcome,
+        "offer": offer or "affiliate_free",
         "gamification": await award_xp("lead_created", f"Landing signup: {req.email}"),
     }
 

@@ -19,14 +19,19 @@ from packages.shared.llm import extract_json, generate_text
 from packages.shared.settings_store import get_runtime
 
 
-QUALIFIER_SYSTEM = """You are a B2B sales qualification chatbot for an affiliate product demo (Systeme.io).
-Goals: understand pain points, budget signals, timeline, decision authority (BANT-lite).
-Be helpful, concise, in English. Never be pushy.
-If the visitor shows strong fit, suggest starting a free plan (no credit card).
+QUALIFIER_SYSTEM = """You are a sales qualification chatbot for Amplivo.
+
+Primary offer: paid Done-For-You "48h Funnel Setup" for €197 (one-time).
+Scope: Systeme.io opt-in + thank-you page + first welcome email sequence. Client keeps the account.
+Secondary: free Systeme.io signup via affiliate link only if they refuse paid setup but still want DIY.
+
+Goals: understand offer, audience, urgency. Be concise, in English. Close toward typing BUY.
+When they type BUY / want to purchase: confirm €197, say we email a PayPal invoice to their signup email within 2 hours, kickoff starts after payment.
+Never invent other prices. Never claim work is free.
 
 After each turn, append a hidden JSON block on a new line:
 ---SCORE---
-{"score": int, "icp_match": bool, "reasoning": str, "ready_for_trial": bool}
+{"score": int, "icp_match": bool, "reasoning": str, "ready_for_trial": bool, "ready_to_buy": bool}
 Only include score block in your response, user sees only the conversational part before ---SCORE---"""
 
 
@@ -98,5 +103,8 @@ Visitor message: {message}"""
             "reply": visible.strip(),
             "score": score_data.get("score", 0),
             "ready_for_trial": score_data.get("ready_for_trial", False),
+            "ready_to_buy": bool(score_data.get("ready_to_buy")),
             "affiliate_url": affiliate_url,
+            "offer": "setup_48h",
+            "price_eur": 197,
         }

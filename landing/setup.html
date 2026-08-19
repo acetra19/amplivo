@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amplivo Setup – Funnel live in 48 hours</title>
+  <meta name="description" content="Done-for-you sales funnel + email setup. Fixed price €197. Live in 48 hours.">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/setup.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;700&family=Fraunces:opsz,wght@9..144,500;9..144,650&display=swap" rel="stylesheet">
+</head>
+<body class="setup-page">
+  <header class="header">
+    <div class="container header-inner">
+      <a class="logo" href="/">Amplivo</a>
+      <a href="#book" class="btn btn-primary btn-sm">Book 48h setup</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Done-for-you service</p>
+          <h1>Funnel live in 48 hours.</h1>
+          <p class="lead">
+            We build your opt-in, thank-you page, and first email sequence on Systeme.io —
+            fixed scope, fixed price, you keep the account.
+          </p>
+          <ul class="benefits">
+            <li>One-time fee: <strong>€197</strong></li>
+            <li>Delivered within 48 hours after kickoff</li>
+            <li>Type <strong>BUY</strong> in chat to reserve a slot</li>
+          </ul>
+          <p class="price-line">Not a free tool signup — this is paid setup work.</p>
+        </div>
+
+        <div class="hero-form" id="book">
+          <div class="card" id="register-card">
+            <h2>Start booking</h2>
+            <p>Assistant checks fit and closes the €197 setup.</p>
+            <form id="register-form">
+              <label>
+                Email
+                <input type="email" name="email" required placeholder="you@example.com">
+              </label>
+              <label>
+                First name
+                <input type="text" name="first_name" placeholder="Alex">
+              </label>
+              <label>
+                Business name
+                <input type="text" name="company" placeholder="Your Business">
+              </label>
+              <button type="submit" class="btn btn-primary btn-block">Continue →</button>
+            </form>
+            <p class="form-error" id="register-error" hidden></p>
+          </div>
+
+          <div class="card chat-card" id="chat-card" hidden>
+            <div class="chat-header">
+              <h2>Setup assistant</h2>
+              <span class="badge" id="score-badge">Fit: –</span>
+            </div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <form id="chat-form" class="chat-input-row">
+              <input type="text" id="chat-input" placeholder="Ask about scope — or type BUY" autocomplete="off">
+              <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+            <a id="trial-link" class="trial-cta" href="#" target="_blank" rel="noopener" hidden>
+              Create Systeme.io account for the build →
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="features container">
+      <h2>Included</h2>
+      <div class="feature-grid">
+        <article>
+          <h3>Funnel pages</h3>
+          <p>Opt-in + thank-you tailored to your offer.</p>
+        </article>
+        <article>
+          <h3>Email start</h3>
+          <p>Welcome sequence so new leads get a reply path.</p>
+        </article>
+        <article>
+          <h3>Handoff</h3>
+          <p>You own the account; we document what was built.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="disclosure container">
+      <p><strong>€197</strong> pays Amplivo setup work. If we open Systeme.io via our partner link, we may also earn a commission at no extra cost to you. <a href="/">Free-tool page</a></p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">© Amplivo · <a href="/">Home</a></div>
+  </footer>
+
+  <script>
+    window.AGENTUR_OFFER = "setup_48h";
+  </script>
+  <script src="/assets/chat.js"></script>
+</body>
+</html>

@@ -132,7 +132,7 @@ async def ensure_app_schema() -> None:
                )"""
         )
         if exists:
-            # Revenue sprint CTAs (idempotent full replace of Systeme sequences).
+            # Paid setup offer CTAs (idempotent).
             await conn.execute(
                 """
                 UPDATE email_sequence_steps AS s
@@ -142,11 +142,11 @@ async def ensure_app_schema() -> None:
                 FROM email_sequences AS es,
                 LATERAL (VALUES
                   (1, 'Kurze Frage zu {{company}}',
-                   E'Hallo {{first_name}},\n\nkurz zu {{company}}: womit baust du aktuell Funnels, E-Mail und Kurszugang – ein Tool oder mehrere?\n\nIch frage, weil Solo-Setups dort oft unnötig Zeit verlieren. Kein Pitch, nur die eine Frage.\n\nBeste Gruesse\n{{sender_name}}\n\nP.S. Kein Interesse? Antworte STOP.'),
+                   E'Hallo {{first_name}},\n\nkurz zu {{company}}: laeuft dein Verkauf aktuell ueber eine klare Opt-in-Seite + automatische E-Mail – oder noch manuell / ueber mehrere Tools?\n\nNur diese eine Frage.\n\nBeste Gruesse\n{{sender_name}}\n\nP.S. STOP zum Abmelden.'),
                   (2, 'Re: Kurze Frage zu {{company}}',
-                   E'Hallo {{first_name}},\n\nkurz nachgehakt.\n\nAngebot: Ich richte dir in 20 Minuten den kostenlosen Systeme.io-Account + einen ersten Funnel ein (ohne Kreditkarte).\n\n1) Free-Zugang hier anlegen:\n{{affiliate_url}}\n2) Antworte mit SETUP – dann machen wir den Rest gemeinsam per Mail.\n\nWenn es nicht passt: ignorieren oder STOP.\n\nBeste Gruesse\n{{sender_name}}'),
-                  (3, 'Letzte Nachricht – Setup-Hilfe {{company}}',
-                   E'Hallo {{first_name}},\n\nletzte Mail von mir.\n\nFalls Stack gerade Thema ist: Free-Account + 20-Min Setup-Hilfe von mir.\nZugang:\n{{affiliate_url}}\n\nAntworte SETUP wenn du willst – sonst alles gut.\n\nBeste Gruesse\n{{sender_name}}\n\nP.S. STOP zum Abmelden.')
+                   E'Hallo {{first_name}},\n\nkurz nachgehakt.\n\nFalls Funnel + E-Mail noch Zeit fressen: wir setzen das in 48 Stunden fertig um (Opt-in, Danke-Seite, Welcome-Mail) – Fixpreis 197 EUR.\n\nDetails: https://www.amplivo.net/setup\n\nWenn du willst: antworte BUY – dann schicken wir die Rechnung per Mail.\n(Optional DIY-Tool-Link: {{affiliate_url}})\n\nBeste Gruesse\n{{sender_name}}\n\nP.S. STOP zum Abmelden.'),
+                  (3, 'Letzte Nachricht – 48h Setup {{company}}',
+                   E'Hallo {{first_name}},\n\nletzte Mail.\n\n48h Funnel-Setup fuer {{company}} – 197 EUR Fixpreis:\nhttps://www.amplivo.net/setup\n\nAntworte BUY oder ignorieren.\n\nBeste Gruesse\n{{sender_name}}\n\nP.S. STOP zum Abmelden.')
                 ) AS v(step_order, subject_tpl, body_tpl)
                 WHERE s.sequence_id = es.id
                   AND es.slug = 'outbound_a'
@@ -162,9 +162,9 @@ async def ensure_app_schema() -> None:
                 FROM email_sequences AS es,
                 LATERAL (VALUES
                   (1, 'Kurze Frage an {{company}}',
-                   E'Hallo {{first_name}},\n\nbei {{company}}: laeuft Funnel + E-Mail + Kurs schon in einem System – oder noch getrennt?\n\nNur diese eine Frage.\n\nBeste Gruesse\n{{sender_name}}\n\nP.S. Antworte STOP zum Abmelden.'),
+                   E'Hallo {{first_name}},\n\nbei {{company}}: hast du schon eine einfache Funnel-Seite mit automatischer Follow-up-Mail – oder noch nicht?\n\nNur die Frage.\n\nBeste Gruesse\n{{sender_name}}\n\nP.S. STOP zum Abmelden.'),
                   (2, 'Re: Tool-Setup {{company}}',
-                   E'Hallo {{first_name}},\n\nkurz der Reminder.\n\nWenn getrennte Tools nerven: Free-Plan Systeme.io + ich helfe 20 Min beim ersten Funnel.\n{{affiliate_url}}\n\nAntworte SETUP – sonst einfach ignorieren.\n\nBeste Gruesse\n{{sender_name}}\n\nP.S. STOP zum Abmelden.')
+                   E'Hallo {{first_name}},\n\nfalls Setup gerade nervt: 48h Fertigstellung (Opt-in + Mail) fuer 197 EUR.\nhttps://www.amplivo.net/setup\n\nAntworte BUY – sonst ignorieren.\n\nBeste Gruesse\n{{sender_name}}\n\nP.S. STOP zum Abmelden.')
                 ) AS v(step_order, subject_tpl, body_tpl)
                 WHERE s.sequence_id = es.id
                   AND es.slug = 'nurture_b'

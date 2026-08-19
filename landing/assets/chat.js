@@ -1,5 +1,6 @@
 (function () {
   const API_BASE = window.AGENTUR_API || "";
+  const OFFER = window.AGENTUR_OFFER || "";
 
   let leadId = null;
   let history = [];
@@ -33,6 +34,8 @@
     return data;
   }
 
+  if (!registerForm) return;
+
   registerForm.addEventListener("submit", async function (e) {
     e.preventDefault();
     registerError.hidden = true;
@@ -43,7 +46,8 @@
       first_name: fd.get("first_name") || null,
       company: fd.get("company") || null,
       industry: "online_business",
-      source: "landing",
+      source: OFFER === "setup_48h" ? "setup_48h" : "landing",
+      offer: OFFER || null,
     };
 
     try {
@@ -58,13 +62,19 @@
       chatCard.hidden = false;
 
       if (data.score != null) {
-        scoreBadge.textContent = "Match: " + data.score + "/100";
+        scoreBadge.textContent = "Fit: " + data.score + "/100";
       }
 
       appendMessage("bot", data.welcome_message);
       history.push({ role: "assistant", content: data.welcome_message });
 
-      if (affiliateUrl) {
+      if (OFFER === "setup_48h") {
+        if (affiliateUrl && trialLink) {
+          trialLink.href = affiliateUrl;
+          trialLink.textContent = "Create Systeme.io account for the build →";
+          trialLink.hidden = false;
+        }
+      } else if (affiliateUrl && trialLink) {
         trialLink.href = affiliateUrl;
         trialLink.textContent = "Start free Systeme.io account";
         trialLink.hidden = false;
@@ -100,12 +110,18 @@
       history.push({ role: "assistant", content: data.reply });
 
       if (data.score != null) {
-        scoreBadge.textContent = "Match: " + data.score + "/100";
+        scoreBadge.textContent = "Fit: " + data.score + "/100";
       }
 
-      if (data.ready_for_trial && (data.affiliate_url || affiliateUrl)) {
+      if (data.ready_to_buy) {
+        scoreBadge.textContent = "Ready · €197";
+      }
+
+      if (data.ready_for_trial && (data.affiliate_url || affiliateUrl) && trialLink) {
         trialLink.href = data.affiliate_url || affiliateUrl || "#";
-        trialLink.textContent = "Start free Systeme.io account";
+        trialLink.textContent = OFFER === "setup_48h"
+          ? "Create Systeme.io account for the build →"
+          : "Start free Systeme.io account";
         trialLink.hidden = false;
       }
     } catch (err) {
