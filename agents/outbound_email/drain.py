@@ -24,6 +24,17 @@ async def drain_outbound_quota(agent, *, max_new: int | None = None) -> dict:
             "reason": "daily_limit_reached",
         }
 
+    allow_new_raw = (await get_runtime("outbound_allow_new_sends") or "true").strip().lower()
+    allow_new = allow_new_raw not in {"0", "false", "no", "off"}
+    if not allow_new:
+        return {
+            "followups": followups,
+            "new_sends": [],
+            "sent_new": 0,
+            "remaining_quota": remaining,
+            "reason": "new_sends_disabled",
+        }
+
     budget = remaining if max_new is None else min(remaining, max_new)
     threshold = int(await get_runtime("lead_score_threshold") or 70)
     candidates = await get_outreach_candidates(limit=max(budget * 3, 15))

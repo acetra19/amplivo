@@ -502,26 +502,23 @@ Reply:
         if country in {"DE", "AT", "CH"}:
             body = (
                 f"Hallo {name},\n\n"
-                "super, dass du Interesse hast.\n\n"
-                f"Hier ist dein kostenloser Zugang (ohne Kreditkarte):\n{affiliate_url}\n\n"
-                "Naechste Schritte:\n"
-                "1) Account anlegen\n"
-                "2) Ein Funnel-Template waehlen\n"
-                "3) Erste E-Mail / Angebot verbinden\n\n"
-                "Wenn du haengst, antworte einfach auf diese Mail.\n\n"
+                "super – dann machen wir es konkret.\n\n"
+                f"1) Leg in 2 Minuten den Free-Account an (ohne Kreditkarte):\n{affiliate_url}\n\n"
+                "2) Antworte mit SETUP – ich richte mit dir in ~20 Minuten "
+                "den ersten Funnel + E-Mail ein.\n\n"
+                "Wenn du lieber allein startest: trotzdem den Link nutzen, "
+                "bei Haengern einfach schreiben.\n\n"
                 f"Beste Gruesse\n{sender}"
             )
-            return "Dein kostenloser Systeme.io Zugang", body
+            return "SETUP: Free-Zugang + 20-Min Hilfe", body
 
         body = (
             f"Hi {name},\n\n"
-            "Great to hear you are interested.\n\n"
-            f"Start free here (no credit card required):\n{affiliate_url}\n\n"
-            "Next steps:\n"
-            "1) Create your account\n"
-            "2) Pick a funnel template\n"
-            "3) Connect your first email / offer\n\n"
-            "Reply if you get stuck — happy to help.\n\n"
+            "Great — let's make this concrete.\n\n"
+            f"1) Create the free account (no credit card):\n{affiliate_url}\n\n"
+            "2) Reply SETUP — I'll help you set up the first funnel + email "
+            "in about 20 minutes.\n\n"
+            "Prefer solo? Use the link anyway and reply if you get stuck.\n\n"
             f"Best,\n{sender}"
         )
-        return "Your free Systeme.io account link", body
+        return "SETUP: free access + 20-min help", body

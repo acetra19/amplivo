@@ -66,6 +66,55 @@ async def leads_ready(limit: int = 20):
     }
 
 
+@router.get("/leads/warm")
+async def leads_warm(limit: int = 40):
+    """Hot pipeline for revenue sprint: interested / qualified / replied, not DNC."""
+    lim = max(1, min(limit, 100))
+    async with get_connection() as conn:
+        rows = await conn.fetch(
+            """
+            WITH inbound AS (
+              SELECT DISTINCT ON (i.lead_id)
+                     i.lead_id, i.sentiment, i.summary, i.body, i.created_at AS replied_at
+              FROM interactions i
+              WHERE i.direction = 'inbound' AND i.channel = 'email'
+              ORDER BY i.lead_id, i.created_at DESC
+            )
+            SELECT l.*,
+                   ib.sentiment AS last_sentiment,
+                   ib.summary AS last_summary,
+                   left(coalesce(ib.body, ''), 280) AS last_body,
+                   ib.replied_at
+            FROM leads l
+            LEFT JOIN inbound ib ON ib.lead_id = l.id
+            WHERE l.do_not_contact = false
+              AND (
+                l.status::text IN ('qualified', 'replied', 'trial_started')
+                OR ib.sentiment IN ('interested', 'objection', 'other', 'out_of_office')
+              )
+              AND coalesce(ib.sentiment, '') <> 'unsubscribe'
+            ORDER BY
+              CASE
+                WHEN l.status::text = 'qualified' OR ib.sentiment = 'interested' THEN 0
+                WHEN l.status::text = 'replied' THEN 1
+                ELSE 2
+              END,
+              coalesce(ib.replied_at, l.updated_at) DESC NULLS LAST
+            LIMIT $1
+            """,
+            lim,
+        )
+    leads = []
+    for r in rows:
+        row = _lead_row(r)
+        row["last_sentiment"] = r["last_sentiment"]
+        row["last_summary"] = r["last_summary"]
+        row["last_body"] = r["last_body"]
+        row["replied_at"] = r["replied_at"].isoformat() if r["replied_at"] else None
+        leads.append(row)
+    return {"leads": leads, "count": len(leads)}
+
+
 @router.get("/leads/{lead_id}/affiliate-url")
 async def lead_affiliate_url(lead_id: UUID):
     lead = await get_lead_by_id(lead_id)
