@@ -68,7 +68,7 @@ def _parse_classified_reply(raw: str, reply_body: str) -> ClassifiedReply:
         lowered = reply_body.lower()
         if any(word in lowered for word in ("unsubscribe", "remove me", "stop emailing", " stop", "stop.", "abmelden")):
             fallback = "unsubscribe"
-        elif any(word in lowered for word in ("interested", "send link", "free link", "yes please", "sign me up")):
+        elif any(word in lowered for word in ("interested", "send link", "free link", "yes please", "sign me up", "buy", "kaufen", "setup")):
             fallback = "interested"
         else:
             fallback = "other"
@@ -501,29 +501,33 @@ Reply:
         sender = settings.outbound_from_name
         country = ((lead or {}).get("country") or "DE").upper()
         setup_url = "https://www.amplivo.net/setup"
+        email = (lead or {}).get("email") or ""
         if country in {"DE", "AT", "CH"}:
             body = (
                 f"Hallo {name},\n\n"
-                "super – dann machen wir es konkret.\n\n"
-                f"Angebot fuer {company}: Funnel live in 48 Stunden "
-                f"(Opt-in, Danke-Seite, Welcome-Mail) fuer 197 EUR.\n"
-                f"Details: {setup_url}\n\n"
-                "Antworte BUY – dann kommt die PayPal-Rechnung an diese Mail.\n\n"
-                "Wenn du lieber allein baust:\n"
+                "verstanden — dann buchen wir das 48h Funnel-Setup.\n\n"
+                f"Leistung: Opt-in + Danke-Seite + Welcome-Mail fuer {company}\n"
+                "Preis: 197 EUR (einmalig)\n"
+                f"Seite: {setup_url}\n\n"
+                f"Naechster Schritt: antworte nochmal mit BUY und deiner Rechnungsadresse "
+                f"(oder bestaetige, dass {email} fuer die PayPal-Rechnung ok ist). "
+                "Kickoff startet nach Zahlungseingang, Lieferung in 48h.\n\n"
+                "DIY-Alternative (ohne Setup-Service):\n"
                 f"{affiliate_url}\n\n"
                 f"Beste Gruesse\n{sender}"
             )
-            return "BUY: 48h Funnel-Setup (197 EUR)", body
+            return "BUY bestaetigt – 197 EUR / 48h Setup", body
 
         body = (
             f"Hi {name},\n\n"
-            "Great — here's the concrete offer.\n\n"
-            f"48-hour funnel setup for {company} "
-            f"(opt-in, thank-you, welcome email) for €197.\n"
-            f"Details: {setup_url}\n\n"
-            "Reply BUY — we'll email a PayPal invoice.\n\n"
-            "Prefer DIY:\n"
+            "Got it — locking the 48h funnel setup.\n\n"
+            f"Scope: opt-in + thank-you + welcome email for {company}\n"
+            "Price: €197 one-time\n"
+            f"Page: {setup_url}\n\n"
+            f"Next: reply BUY again and confirm {email} for the PayPal invoice "
+            "(or send billing details). Kickoff after payment, delivery in 48h.\n\n"
+            "DIY alternative:\n"
             f"{affiliate_url}\n\n"
             f"Best,\n{sender}"
         )
-        return "BUY: 48h funnel setup (€197)", body
+        return "BUY confirmed – €197 / 48h setup", body

@@ -48,6 +48,17 @@ async def drain_outbound_quota(agent, *, max_new: int | None = None) -> dict:
             break
 
         lead_id = lead["id"]
+        email = (lead["email"] or "").lower()
+        if email.endswith("@example.com") or "amplivo" in email or email.startswith("test-") or "llm-probe" in email:
+            sent.append(
+                {
+                    "lead_id": str(lead_id),
+                    "email": lead["email"],
+                    "skipped": True,
+                    "reason": "test_or_internal",
+                }
+            )
+            continue
         score = int(lead["score"] or 0)
         if score <= 0:
             try:
