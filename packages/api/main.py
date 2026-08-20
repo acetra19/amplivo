@@ -45,6 +45,23 @@ SETUP_WELCOME_MESSAGE = (
     "What do you sell, and do you already have a Systeme.io account?"
 )
 
+PACK_WELCOME_MESSAGE = (
+    "Hi — this is the Amplivo Funnel Pack for €9 (checklist + 3 email templates + Systeme.io click order). "
+    "Type PACK to buy. We'll invoice €9 by PayPal to this email and send the files right after payment. "
+    "Want the full done-for-you build instead? Ask about the €197 setup."
+)
+
+AUDIT_WELCOME_MESSAGE = (
+    "Hi — free funnel audit. Paste your website URL and what you sell. "
+    "I'll give the top 3 leaks, then you can grab the €9 pack or the €197 48h build if you want it done."
+)
+
+AGENCY_WELCOME_MESSAGE = (
+    "Hi — Amplivo white-label funnel desk for agencies. "
+    "We build Systeme.io opt-in + thank-you + welcome mail in 48h for €197; you keep the client. "
+    "Type AGENCY to reserve a slot and tell me your typical client offer."
+)
+
 
 async def seed_settings_from_env() -> None:
     """Import .env values into DB on first run (one-time per key)."""
@@ -193,6 +210,38 @@ async def setup_offer_page():
     raise HTTPException(status_code=404, detail="Setup page not found")
 
 
+@app.get("/pack")
+async def pack_offer_page():
+    page = LANDING_DIR / "pack.html"
+    if page.is_file():
+        return FileResponse(page)
+    raise HTTPException(status_code=404, detail="Pack page not found")
+
+
+@app.get("/audit")
+async def audit_offer_page():
+    page = LANDING_DIR / "audit.html"
+    if page.is_file():
+        return FileResponse(page)
+    raise HTTPException(status_code=404, detail="Audit page not found")
+
+
+@app.get("/agency")
+async def agency_offer_page():
+    page = LANDING_DIR / "agency.html"
+    if page.is_file():
+        return FileResponse(page)
+    raise HTTPException(status_code=404, detail="Agency page not found")
+
+
+@app.get("/assets/funnel-pack.md")
+async def funnel_pack_file():
+    path = LANDING_DIR / "assets" / "funnel-pack.md"
+    if path.is_file():
+        return FileResponse(path, media_type="text/markdown")
+    raise HTTPException(status_code=404, detail="Pack file not found")
+
+
 @app.get("/pipeline/stats")
 async def pipeline_stats():
     return await get_pipeline_stats()
@@ -289,12 +338,24 @@ class RegisterRequest(BaseModel):
 async def register_visitor(req: RegisterRequest):
     payload = req.model_dump()
     offer = (payload.pop("offer", None) or "").strip().lower()
-    if offer == "setup_48h":
-        payload["source"] = "setup_48h"
+    source_map = {
+        "setup_48h": "setup_48h",
+        "pack_9": "pack_9",
+        "audit_free": "audit_free",
+        "agency_wl": "agency_wl",
+    }
+    if offer in source_map:
+        payload["source"] = source_map[offer]
     lead_id = await upsert_lead(payload)
     score_result = await app.state.outbound.score_lead(lead_id)
     affiliate_url = await get_affiliate_url(lead_id)
-    welcome = SETUP_WELCOME_MESSAGE if offer == "setup_48h" else WELCOME_MESSAGE
+    welcome_map = {
+        "setup_48h": SETUP_WELCOME_MESSAGE,
+        "pack_9": PACK_WELCOME_MESSAGE,
+        "audit_free": AUDIT_WELCOME_MESSAGE,
+        "agency_wl": AGENCY_WELCOME_MESSAGE,
+    }
+    welcome = welcome_map.get(offer, WELCOME_MESSAGE)
 
     return {
         "lead_id": str(lead_id),

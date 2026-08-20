@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>White-label funnel setup for agencies – Amplivo</title>
+  <meta name="description" content="Agencies: we build Systeme.io funnels for your clients in 48h. White-label. Fixed €197.">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/setup.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;700&family=Fraunces:opsz,wght@9..144,550&display=swap" rel="stylesheet">
+</head>
+<body class="setup-page">
+  <header class="header">
+    <div class="container header-inner">
+      <a class="logo" href="/">Amplivo</a>
+      <a href="#book" class="btn btn-primary btn-sm">Partner with us</a>
+    </div>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">For agencies &amp; freelancers</p>
+          <h1>We build. You keep the client.</h1>
+          <p class="lead">
+            White-label Systeme.io funnel setup in 48 hours. You invoice the client;
+            we deliver the build for a fixed fee.
+          </p>
+          <ul class="benefits">
+            <li>Fixed partner rate: <strong>€197</strong> per funnel build</li>
+            <li>You own the relationship — we stay invisible if you want</li>
+            <li>Reply <strong>AGENCY</strong> to lock capacity</li>
+          </ul>
+        </div>
+        <div class="hero-form" id="book">
+          <div class="card" id="register-card">
+            <h2>Agency intake</h2>
+            <form id="register-form">
+              <label>Work email <input type="email" name="email" required placeholder="you@agency.com"></label>
+              <label>Name <input type="text" name="first_name" placeholder="Alex"></label>
+              <label>Agency <input type="text" name="company" required placeholder="Agency name"></label>
+              <button type="submit" class="btn btn-primary btn-block">Continue →</button>
+            </form>
+            <p class="form-error" id="register-error" hidden></p>
+          </div>
+          <div class="card chat-card" id="chat-card" hidden>
+            <div class="chat-header">
+              <h2>Partner desk</h2>
+              <span class="badge" id="score-badge">B2B</span>
+            </div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <form id="chat-form" class="chat-input-row">
+              <input type="text" id="chat-input" placeholder="Type AGENCY to start" autocomplete="off">
+              <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+            <a id="trial-link" class="trial-cta" href="#" hidden></a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer"><div class="container">© Amplivo</div></footer>
+  <script>window.AGENTUR_OFFER = "agency_wl";</script>
+  <script src="/assets/chat.js"></script>
+</body>
+</html>

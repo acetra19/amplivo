@@ -22,6 +22,7 @@ SETTING_FIELDS: dict[str, dict[str, Any]] = {
     "outbound_reply_to_email": {"group": "email", "label": "Reply-To Email", "type": "email", "secret": False},
     "daily_email_limit":       {"group": "email", "label": "Daily Email Limit", "type": "number", "secret": False},
     "outbound_allow_new_sends": {"group": "email", "label": "Allow New Cold Sends", "type": "select", "options": ["true", "false"], "secret": False},
+    "payment_paypal_url":      {"group": "affiliate", "label": "PayPal.me / Payment URL", "type": "url", "secret": False},
     "api_domain":              {"group": "domains", "label": "API Domain", "type": "text", "secret": False},
     "landing_domain":          {"group": "domains", "label": "Landing Domain", "type": "text", "secret": False},
     "dashboard_domain":        {"group": "domains", "label": "Dashboard Domain", "type": "text", "secret": False},

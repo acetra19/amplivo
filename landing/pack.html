@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amplivo Funnel Pack – €9</title>
+  <meta name="description" content="Instant funnel checklist + email templates for coaches. €9 one-time.">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/setup.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;700&family=Fraunces:opsz,wght@9..144,550&display=swap" rel="stylesheet">
+</head>
+<body class="setup-page">
+  <header class="header">
+    <div class="container header-inner">
+      <a class="logo" href="/">Amplivo</a>
+      <a href="/setup" class="btn btn-primary btn-sm">Or book 48h setup</a>
+    </div>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Digital product · instant</p>
+          <h1>Funnel Pack — €9</h1>
+          <p class="lead">
+            A practical checklist + copy templates to launch an opt-in funnel this week —
+            without hiring anyone yet.
+          </p>
+          <ul class="benefits">
+            <li>1-page funnel checklist (opt-in → thank-you → email)</li>
+            <li>3 ready email templates (welcome / nurture / offer)</li>
+            <li>Systeme.io setup order (what to click, in sequence)</li>
+          </ul>
+          <p class="price-line">Reply <strong>PACK</strong> after the form — we invoice €9 and send the files.</p>
+        </div>
+        <div class="hero-form" id="buy">
+          <div class="card" id="register-card">
+            <h2>Get the €9 pack</h2>
+            <p>Leave your email. Assistant closes payment + delivery.</p>
+            <form id="register-form">
+              <label>Email <input type="email" name="email" required placeholder="you@example.com"></label>
+              <label>First name <input type="text" name="first_name" placeholder="Alex"></label>
+              <label>Business <input type="text" name="company" placeholder="Optional"></label>
+              <button type="submit" class="btn btn-primary btn-block">Continue →</button>
+            </form>
+            <p class="form-error" id="register-error" hidden></p>
+          </div>
+          <div class="card chat-card" id="chat-card" hidden>
+            <div class="chat-header">
+              <h2>Pack assistant</h2>
+              <span class="badge" id="score-badge">€9</span>
+            </div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <form id="chat-form" class="chat-input-row">
+              <input type="text" id="chat-input" placeholder="Type PACK to buy" autocomplete="off">
+              <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+            <a id="trial-link" class="trial-cta" href="#" hidden></a>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="disclosure container">
+      <p>Want it built for you instead? <a href="/setup">48h Setup — €197</a> · <a href="/audit">Free funnel audit</a></p>
+    </section>
+  </main>
+  <footer class="footer"><div class="container">© Amplivo</div></footer>
+  <script>window.AGENTUR_OFFER = "pack_9";</script>
+  <script src="/assets/chat.js"></script>
+</body>
+</html>

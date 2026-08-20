@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free Funnel Audit – Amplivo</title>
+  <meta name="description" content="Free 5-minute funnel audit for coaches and online businesses. Get gaps + next steps.">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/setup.css">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500;700&family=Fraunces:opsz,wght@9..144,550&display=swap" rel="stylesheet">
+</head>
+<body class="setup-page">
+  <header class="header">
+    <div class="container header-inner">
+      <a class="logo" href="/">Amplivo</a>
+      <a href="/setup" class="btn btn-primary btn-sm">Skip to paid setup</a>
+    </div>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Lead magnet</p>
+          <h1>Free funnel audit.</h1>
+          <p class="lead">
+            Tell us your site + offer. We reply with the top 3 leaks blocking opt-ins and sales —
+            then you can buy the €9 pack or the €197 build.
+          </p>
+          <ul class="benefits">
+            <li>No call required</li>
+            <li>Written feedback by email</li>
+            <li>Clear upsell path if you want it done for you</li>
+          </ul>
+        </div>
+        <div class="hero-form" id="audit">
+          <div class="card" id="register-card">
+            <h2>Request audit</h2>
+            <form id="register-form">
+              <label>Email <input type="email" name="email" required placeholder="you@example.com"></label>
+              <label>First name <input type="text" name="first_name" placeholder="Alex"></label>
+              <label>Website / offer <input type="text" name="company" required placeholder="yoursite.com or offer name"></label>
+              <button type="submit" class="btn btn-primary btn-block">Start audit chat →</button>
+            </form>
+            <p class="form-error" id="register-error" hidden></p>
+          </div>
+          <div class="card chat-card" id="chat-card" hidden>
+            <div class="chat-header">
+              <h2>Audit assistant</h2>
+              <span class="badge" id="score-badge">Free</span>
+            </div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <form id="chat-form" class="chat-input-row">
+              <input type="text" id="chat-input" placeholder="Paste your URL or describe the offer" autocomplete="off">
+              <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+            <a id="trial-link" class="trial-cta" href="/pack">€9 Funnel Pack →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer"><div class="container">© Amplivo · <a href="/setup">€197 setup</a></div></footer>
+  <script>window.AGENTUR_OFFER = "audit_free";</script>
+  <script src="/assets/chat.js"></script>
+</body>
+</html>
