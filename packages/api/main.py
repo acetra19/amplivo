@@ -234,6 +234,15 @@ async def agency_offer_page():
     raise HTTPException(status_code=404, detail="Agency page not found")
 
 
+@app.get("/systeme-io-einrichten")
+@app.get("/systeme-io-einrichten-lassen")
+async def systeme_seo_page():
+    page = LANDING_DIR / "systeme-io-einrichten.html"
+    if page.is_file():
+        return FileResponse(page)
+    raise HTTPException(status_code=404, detail="SEO page not found")
+
+
 @app.get("/assets/funnel-pack.md")
 async def funnel_pack_file():
     path = LANDING_DIR / "assets" / "funnel-pack.md"
