@@ -234,6 +234,14 @@ async def agency_offer_page():
     raise HTTPException(status_code=404, detail="Agency page not found")
 
 
+@app.get("/hire")
+async def hire_offer_page():
+    page = LANDING_DIR / "hire.html"
+    if page.is_file():
+        return FileResponse(page)
+    raise HTTPException(status_code=404, detail="Hire page not found")
+
+
 @app.get("/systeme-io-einrichten")
 @app.get("/systeme-io-einrichten-lassen")
 async def systeme_seo_page():
@@ -352,6 +360,7 @@ async def register_visitor(req: RegisterRequest):
         "pack_9": "pack_9",
         "audit_free": "audit_free",
         "agency_wl": "agency_wl",
+        "hire": "hire",
     }
     if offer in source_map:
         payload["source"] = source_map[offer]

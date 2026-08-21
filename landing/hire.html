@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hire Amplivo – Systeme.io funnel setup</title>
+  <meta name="description" content="Buy Systeme.io funnel setup. Opt-in, thank-you page, welcome emails. From €29. Live in 48 hours on the premium package.">
+  <link rel="stylesheet" href="/assets/style.css">
+  <link rel="stylesheet" href="/assets/setup.css">
+</head>
+<body class="setup-page">
+  <header class="header">
+    <div class="container header-inner">
+      <a class="logo" href="/">Amplivo</a>
+      <a href="/setup" class="btn btn-primary btn-sm">€197 / 48h</a>
+    </div>
+  </header>
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">For people already looking to hire</p>
+          <h1>Systeme.io funnel. Built for you.</h1>
+          <p class="lead">
+            Not another cold email. If you came here to buy setup work:
+            pick a package and type BUY, PACK, or HIRE in chat.
+          </p>
+          <ul class="benefits">
+            <li><strong>€29</strong> templates + click-order (reply PACK)</li>
+            <li><strong>€97</strong> built in your account (reply HIRE)</li>
+            <li><strong>€197</strong> live in 48 hours (reply BUY)</li>
+          </ul>
+        </div>
+        <div class="hero-form" id="hire">
+          <div class="card" id="register-card">
+            <h2>Start order</h2>
+            <form id="register-form">
+              <label>Email <input type="email" name="email" required placeholder="you@example.com"></label>
+              <label>Name <input type="text" name="first_name" placeholder="Alex"></label>
+              <label>Business <input type="text" name="company" placeholder="Your offer"></label>
+              <button type="submit" class="btn btn-primary btn-block">Continue →</button>
+            </form>
+            <p class="form-error" id="register-error" hidden></p>
+          </div>
+          <div class="card chat-card" id="chat-card" hidden>
+            <div class="chat-header">
+              <h2>Order desk</h2>
+              <span class="badge" id="score-badge">Hire</span>
+            </div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <form id="chat-form" class="chat-input-row">
+              <input type="text" id="chat-input" placeholder="Type BUY, HIRE, or PACK" autocomplete="off">
+              <button type="submit" class="btn btn-primary">Send</button>
+            </form>
+            <a id="trial-link" class="trial-cta" href="/pack" hidden>Pack</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="footer"><div class="container">© Amplivo</div></footer>
+  <script>window.AGENTUR_OFFER = "hire";</script>
+  <script src="/assets/chat.js"></script>
+</body>
+</html>
